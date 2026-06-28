@@ -2708,6 +2708,156 @@ body::after,
   contain-intrinsic-size: 1px 100px;
   contain: layout style paint;
 }
+
+
+/* ======================================================================
+   STATIC INNER PAGES
+   Removes animations/transitions ONLY after the home section.
+   Top bar, welcome animation, and home/hero animations are untouched.
+   ====================================================================== */
+
+/* All content pages after home: Skills, Projects, Music, Anime, Interests,
+   Contact, online presence, footer. */
+body > .gradient-line ~ section,
+body > .gradient-line ~ section *,
+.online-presence,
+.online-presence *,
+footer,
+footer * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Existing JS reveal code sets opacity/transform inline. Override it only
+   outside the hero so every inner page is static and visible immediately. */
+body > .gradient-line ~ section .fade-in,
+body > .gradient-line ~ section .slide-in,
+body > .gradient-line ~ section .fade-up,
+body > .gradient-line ~ section .visible,
+body > .gradient-line ~ section .project-card,
+body > .gradient-line ~ section .interest-card,
+body > .gradient-line ~ section .skill-card,
+body > .gradient-line ~ section .stat-card,
+body > .gradient-line ~ section .skill-row,
+body > .gradient-line ~ section .skill-row-entry,
+body > .gradient-line ~ section .rom-card,
+body > .gradient-line ~ section .contact-link-item,
+body > .gradient-line ~ section .stat-cell,
+body > .gradient-line ~ section .anilist-entry-link,
+body > .gradient-line ~ section .lastfm-track,
+body > .gradient-line ~ section .lastfm-artist-row,
+.online-presence.fade-in,
+footer.fade-in {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* No hover/press animated movement on inner pages. Buttons and links still work. */
+body > .gradient-line ~ section a:hover,
+body > .gradient-line ~ section button:hover,
+body > .gradient-line ~ section .project-card:hover,
+body > .gradient-line ~ section .interest-card:hover,
+body > .gradient-line ~ section .rom-card:hover,
+body > .gradient-line ~ section .media-panel:hover,
+body > .gradient-line ~ section .contact-link-item:hover,
+body > .gradient-line ~ section .tag:hover,
+body > .gradient-line ~ section a:active,
+body > .gradient-line ~ section button:active,
+.online-presence a:hover,
+.online-presence a:active,
+footer a:hover,
+footer a:active {
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Stop section-only decorative motion. Header/topbar and hero are not targeted. */
+body > .gradient-line ~ section .section-glow-top,
+body > .gradient-line ~ section .section-glow-top::before,
+body > .gradient-line ~ section .section-glow-top::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Dynamic list/category/page changes should update instantly on inner pages. */
+body > .gradient-line ~ section .anilist-entry-link,
+body > .gradient-line ~ section .skill-row-entry,
+body > .gradient-line ~ section .lastfm-track,
+body > .gradient-line ~ section .lastfm-artist-row,
+body > .gradient-line ~ section .ani-page-btn,
+body > .gradient-line ~ section .anilist-tab,
+body > .gradient-line ~ section .skill-tab,
+body > .gradient-line ~ section .lastfm-period-tab,
+body > .gradient-line ~ section .filter-btn {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation-delay: 0s !important;
+  opacity: 1 !important;
+  transform: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Do not animate list images/cards on these pages either. */
+body > .gradient-line ~ section img,
+body > .gradient-line ~ section svg,
+body > .gradient-line ~ section .media-panel-icon,
+body > .gradient-line ~ section .anilist-cover,
+body > .gradient-line ~ section .track-art,
+body > .gradient-line ~ section .artist-art {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+/* ====================================================================== */
+
+
+/* FIX: remove dark/black halo behind AniList category pills in light mode */
+html.light .anilist-tabs,
+html.light .anilist-tabs *,
+html.light #anilist-section .anilist-tabs,
+html.light #anilist-section .anilist-tabs * {
+  filter: none !important;
+  text-shadow: none !important;
+}
+html.light #anilist-section .anilist-tab,
+html.light #anilist-section .anilist-tab:hover,
+html.light #anilist-section .anilist-tab:focus,
+html.light #anilist-section .anilist-tab:active,
+html.light #anilist-section .anilist-tab:focus-visible {
+  background: rgba(255,255,255,0.42) !important;
+  border-color: rgba(95,95,145,0.14) !important;
+  color: #8c8ca8 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transform: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+html.light #anilist-section .anilist-tab.active,
+html.light #anilist-section .anilist-tab.active:hover,
+html.light #anilist-section .anilist-tab.active:focus,
+html.light #anilist-section .anilist-tab.active:active,
+html.light #anilist-section .anilist-tab.active:focus-visible {
+  background: rgba(235,233,255,0.62) !important;
+  border-color: rgba(116,100,210,0.34) !important;
+  color: #17172b !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
+}
+/* If browser leaves a sticky mobile focus/active overlay, clear it after tap. */
+html.light #anilist-section .anilist-tab::before,
+html.light #anilist-section .anilist-tab::after {
+  content: none !important;
+  display: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
 </style>
 <body>
 
@@ -4476,6 +4626,49 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
  window.addEventListener('load',start);
 });
+</script>
+
+
+<script>
+// Static inner pages: remove inline animation styles added by existing render code.
+// Does not touch header/topbar, intro overlay, or #hero.
+(function(){
+  function clearInnerPageMotion(root){
+    const scope = root || document;
+    const nodes = scope.querySelectorAll ? scope.querySelectorAll(
+      'body > .gradient-line ~ section .fade-in, body > .gradient-line ~ section .slide-in, body > .gradient-line ~ section .fade-up,' +
+      'body > .gradient-line ~ section .project-card, body > .gradient-line ~ section .interest-card, body > .gradient-line ~ section .rom-card,' +
+      'body > .gradient-line ~ section .media-panel, body > .gradient-line ~ section .skill-row-entry, body > .gradient-line ~ section .anilist-entry-link,' +
+      'body > .gradient-line ~ section .lastfm-track, body > .gradient-line ~ section .lastfm-artist-row, body > .gradient-line ~ section .contact-link-item, .online-presence, footer'
+    ) : [];
+    nodes.forEach(function(el){
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.style.transition = 'none';
+      el.style.animation = 'none';
+      el.classList.add('visible');
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    clearInnerPageMotion(document);
+    ['skill-list','anilist-list','lastfm-tracks','lastfm-artists','lastfm-recent','projects-container'].forEach(function(id){
+      const el = document.getElementById(id);
+      if (!el) return;
+      new MutationObserver(function(){ clearInnerPageMotion(document); }).observe(el, {childList:true, subtree:true});
+    });
+  });
+  window.addEventListener('load', function(){ clearInnerPageMotion(document); }, {once:true});
+})();
+</script>
+
+
+<script>
+// Clear mobile sticky focus from AniList tabs to prevent dark halos in light mode.
+document.addEventListener('click', function(e){
+  const tab = e.target.closest && e.target.closest('#anilist-section .anilist-tab');
+  if (!tab) return;
+  setTimeout(function(){ try { tab.blur(); } catch(_) {} }, 0);
+}, true);
 </script>
 
 </body>
