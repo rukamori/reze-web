@@ -1,8 +1,8 @@
 # Telegram bot commands for website questions
 
-Use these commands by replying to a bot question message that contains an `ID:` line.
+All management commands are only handled inside your Telegram bot webhook. Use them by replying to a bot question message that contains an `ID:` line.
 
-## Answer normally
+## Normal answer
 
 Reply to the bot question message with normal text:
 
@@ -20,7 +20,7 @@ Reply to the bot question message with:
 /delete
 ```
 
-This permanently deletes the question from Firestore.
+This permanently deletes the question from Firestore. On the website admin popup, tap `Load questions` again to refresh the list.
 
 ## Dismiss question
 
@@ -30,7 +30,7 @@ Reply to the bot question message with:
 /dismiss
 ```
 
-This dismisses the question so it stays hidden from the public answered list.
+This dismisses the question.
 
 ## Edit question text
 
@@ -40,8 +40,18 @@ Reply to the bot question message with:
 /edit
 ```
 
-The bot will ask you to send the edited question text. Send the new text as your next Telegram message. The website question text will be updated.
+The bot asks you to send the edited question text. Send the new text as your next Telegram message.
 
-## Duplicate notification fix
+## Refresh question list
 
-`script.js` now prevents overlapping queue flushes, which was the reason the same website question could be sent to Telegram twice with the same ID.
+Send this directly to the bot:
+
+```text
+/refresh
+```
+
+The bot sends you all currently `UNANSWERED` and `DISMISSED` questions with their IDs.
+
+## Website change
+
+The visitor-side `Your questions` box below the website question field is hidden/disabled now.

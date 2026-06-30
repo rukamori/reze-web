@@ -4806,3 +4806,6 @@ body > .ama-modal textarea,
 /* ===== Desktop welcome screen scroll unlock ===== */
 html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open){overflow-y:auto!important;height:auto!important;touch-action:auto!important}#intro-overlay[style*="display: none"],#intro-overlay[data-force-dismissed="1"]{pointer-events:none!important}
 @media (min-width: 900px){#hero{min-height:auto!important;overflow:visible!important}.gx-welcome-card{max-height:none!important}}
+
+/* Hide visitor-side local question management list below the AMA input */
+#ama-my-questions{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;border:0!important}
