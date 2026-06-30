@@ -4809,3 +4809,6 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 
 /* Hide visitor-side local question management list below the AMA input */
 #ama-my-questions{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;border:0!important}
+
+/* AMA list: keep the public question box compact and scrollable */
+#ama-used::after{content:''}#ama-list{max-height:min(560px,58vh)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;scrollbar-width:thin!important}#ama-widget{overflow:hidden!important}@media(max-width:760px){#ama-list{max-height:430px!important}}
