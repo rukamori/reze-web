@@ -4802,3 +4802,7 @@ body > .ama-modal textarea,
 
 /* ===== Changelogs inside credits as a rotated pill ===== */
 #site-credit-card .site-credit-inner{position:relative!important;padding-right:clamp(54px,8vw,82px)!important;min-height:132px!important}#site-credit-card .gx-changelog-wrap{position:absolute!important;right:clamp(12px,2.5vw,22px)!important;top:50%!important;transform:translateY(-50%) rotate(90deg)!important;transform-origin:center!important;margin:0!important;padding:0!important;z-index:3!important;width:max-content!important;max-width:none!important;display:block!important}.gx-changelog-pill{white-space:nowrap!important}.gx-changelog-wrap.fx-scoped-reveal{transition:opacity .68s cubic-bezier(.22,1,.36,1),filter .68s cubic-bezier(.22,1,.36,1)!important}.gx-changelog-wrap.fx-scoped-reveal.fx-scoped-visible{transform:translateY(-50%) rotate(90deg)!important}@media(max-width:520px){#site-credit-card .site-credit-inner{padding-right:58px!important}.gx-changelog-pill{font-size:11px!important;padding:11px 15px!important;border-radius:12px!important}#site-credit-card .gx-changelog-wrap{right:6px!important}}
+
+/* ===== Desktop welcome screen scroll unlock ===== */
+html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open){overflow-y:auto!important;height:auto!important;touch-action:auto!important}#intro-overlay[style*="display: none"],#intro-overlay[data-force-dismissed="1"]{pointer-events:none!important}
+@media (min-width: 900px){#hero{min-height:auto!important;overflow:visible!important}.gx-welcome-card{max-height:none!important}}
