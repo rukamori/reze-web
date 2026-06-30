@@ -484,59 +484,6 @@
 <div class="footer-copy">© 2026 · Root modules. Custom ROMs. No limits.</div>
 </footer>
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js" defer></script>
-<!-- ANIMATION & POLISH PASS: scroll-reveal motion only, no UI/markup/layout changes -->
-<script>
-(function(){
-  function initReveal(){
-    // Targets: cards/panels/grids across the page. Explicitly excludes the
-    // "My Online Presence" box and its children, whose existing animation
-    // must remain untouched.
-    var selectors = [
-      '.about-grid > div',
-      '.media-panel',
-      '.lastfm-stats-header',
-      '.rom-card',
-      '.interest-card',
-      '.contact-form-wrap',
-      '.project-card',
-      '.gx-widget-card',
-      '.gx-game-card',
-      '.ama-admin-card',
-      '.interests-grid',
-      '.projects-grid'
-    ];
-    var nodes = document.querySelectorAll(selectors.join(','));
-    var targets = [];
-    nodes.forEach(function(el){
-      if (el.closest('.online-presence')) return; // leave presence box alone
-      el.classList.add('gx-reveal');
-      targets.push(el);
-    });
-
-    if (!('IntersectionObserver' in window) || targets.length === 0) {
-      targets.forEach(function(el){ el.classList.add('gx-revealed'); });
-      return;
-    }
-
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting){
-          entry.target.classList.add('gx-revealed');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-    targets.forEach(function(el){ io.observe(el); });
-  }
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initReveal);
-  } else {
-    initReveal();
-  }
-})();
-</script>
 
 
 <!-- AniList tab fix is now handled by the full fetch script below -->
