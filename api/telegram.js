@@ -44,8 +44,6 @@ module.exports = async function handler(req, res) {
     }
 
     const text = [
-      '<b>New website question</b>',
-      '',
       `<b>From:</b> ${escapeHtml(name)}`,
       `<b>Question:</b> ${escapeHtml(question)}`,
       questionId ? `<b>ID:</b> <code>${escapeHtml(questionId)}</code>` : '',
