@@ -124,6 +124,35 @@ async function deleteQuestion(questionId) {
   return firestore('DELETE', docPath(FIRESTORE_COLLECTION, questionId));
 }
 
+function fromFirestoreDoc(doc) {
+  const f = doc.fields || {};
+  return {
+    id: f.id?.stringValue || (doc.name ? doc.name.split('/').pop() : ''),
+    name: f.name?.stringValue || 'Anonymous',
+    question: f.question?.stringValue || '',
+    answer: f.answer?.stringValue || '',
+    answered: !!f.answered?.booleanValue,
+    dismissed: !!f.dismissed?.booleanValue,
+    createdAt: f.createdAt?.stringValue || '',
+  };
+}
+
+function questionState(q) {
+  if (q.dismissed) return 'DISMISSED';
+  if (q.answered || String(q.answer || '').trim()) return 'ANSWERED';
+  return 'UNANSWERED';
+}
+
+async function listQuestionsForRefresh() {
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/${FIRESTORE_COLLECTION}?pageSize=200`;
+  const data = await firestore('GET', url);
+  const items = (data.documents || [])
+    .map(fromFirestoreDoc)
+    .filter(q => q.question && (questionState(q) === 'UNANSWERED' || questionState(q) === 'DISMISSED'));
+  items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  return items;
+}
+
 async function editQuestionText(questionId, text) {
   return firestore('PATCH', `${docPath(FIRESTORE_COLLECTION, questionId)}?${mask(['question'])}`, {
     fields: { question: { stringValue: text.slice(0, 280) } },
@@ -195,6 +224,30 @@ module.exports = async function handler(req, res) {
     const text = String(message.text || message.caption || '').trim();
     if (!text) return res.status(200).json({ ok: true, ignored: 'empty' });
 
+    if (text.split(/\s+/)[0].toLowerCase() === '/refresh') {
+      const items = await listQuestionsForRefresh();
+      if (!items.length) {
+        await sendTelegram(chatId, 'No unanswered or dismissed questions right now.', message.message_id);
+        return res.status(200).json({ ok: true, refreshCount: 0 });
+      }
+      const lines = items.map((q, i) => {
+        const tag = questionState(q);
+        return `${i + 1}. <b>[${tag}]</b> ${escapeHtml(q.name)}\nQ: ${escapeHtml(q.question)}\nID: <code>${escapeHtml(q.id)}</code>`;
+      });
+      let chunk = '<b>Current unanswered/dismissed questions</b>\n\n';
+      let sent = 0;
+      for (const line of lines) {
+        if ((chunk + line + '\n\n').length > 3600) {
+          await sendTelegram(chatId, chunk.trim(), message.message_id);
+          sent++;
+          chunk = '';
+        }
+        chunk += line + '\n\n';
+      }
+      if (chunk.trim()) { await sendTelegram(chatId, chunk.trim(), message.message_id); sent++; }
+      return res.status(200).json({ ok: true, refreshCount: items.length, messages: sent });
+    }
+
     // If /edit was started, the next normal message becomes the edited question text.
     const pending = await getEditSession(chatId);
     const pendingQuestionId = pending?.fields?.questionId?.stringValue;
@@ -217,7 +270,7 @@ module.exports = async function handler(req, res) {
 
       if (command === '/delete') {
         await deleteQuestion(questionId);
-        await sendTelegram(chatId, `Deleted question <code>${escapeHtml(questionId)}</code>.`, message.message_id);
+        await sendTelegram(chatId, `Deleted question <code>${escapeHtml(questionId)}</code>. Tap Load questions in the website admin popup to refresh the list.`, message.message_id);
         return res.status(200).json({ ok: true, deleted: questionId });
       }
 
