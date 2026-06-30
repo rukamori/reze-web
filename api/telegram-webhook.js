@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const TELEGRAM_API = 'https://api.telegram.org/bot';
 const DEFAULT_PROJECT_ID = 'therealreze-2a3bf';
 const FIRESTORE_COLLECTION = 'amaQuestions';
+const EDIT_SESSION_COLLECTION = 'telegramEditSessions';
 
 function jsonBody(req) {
   if (!req.body) return {};
@@ -38,6 +39,15 @@ function serviceAccount() {
   return parsed;
 }
 
+function projectId() {
+  const sa = serviceAccount();
+  return process.env.FIREBASE_PROJECT_ID || sa.project_id || DEFAULT_PROJECT_ID;
+}
+
+function docPath(collection, id) {
+  return `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/${collection}/${encodeURIComponent(id)}`;
+}
+
 async function googleAccessToken() {
   const sa = serviceAccount();
   const now = Math.floor(Date.now() / 1000);
@@ -59,13 +69,12 @@ async function googleAccessToken() {
     .replace(/\+/g, '-')
     .replace(/\//g, '_');
 
-  const assertion = `${unsigned}.${signature}`;
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
+      assertion: `${unsigned}.${signature}`,
     }),
   });
   const data = await response.json().catch(() => null);
@@ -75,34 +84,69 @@ async function googleAccessToken() {
   return data.access_token;
 }
 
-async function answerFirestoreQuestion(questionId, answer) {
-  const sa = serviceAccount();
-  const projectId = process.env.FIREBASE_PROJECT_ID || sa.project_id || DEFAULT_PROJECT_ID;
+async function firestore(method, url, body) {
   const token = await googleAccessToken();
-  const answeredAt = new Date().toISOString();
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${FIRESTORE_COLLECTION}/${encodeURIComponent(questionId)}?updateMask.fieldPaths=answer&updateMask.fieldPaths=answered&updateMask.fieldPaths=answeredAt&updateMask.fieldPaths=dismissed`;
-
   const response = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      fields: {
-        answer: { stringValue: answer.slice(0, 1000) },
-        answered: { booleanValue: true },
-        answeredAt: { stringValue: answeredAt },
-        dismissed: { booleanValue: false },
-      },
-    }),
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: body ? JSON.stringify(body) : undefined,
   });
-
   const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.error?.message || `Firestore update error ${response.status}`);
-  }
+  if (!response.ok) throw new Error(data?.error?.message || `Firestore ${method} error ${response.status}`);
   return data;
+}
+
+function mask(fields) {
+  return fields.map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+}
+
+async function answerQuestion(questionId, answer) {
+  return firestore('PATCH', `${docPath(FIRESTORE_COLLECTION, questionId)}?${mask(['answer', 'answered', 'answeredAt', 'dismissed'])}`, {
+    fields: {
+      answer: { stringValue: answer.slice(0, 1000) },
+      answered: { booleanValue: true },
+      answeredAt: { stringValue: new Date().toISOString() },
+      dismissed: { booleanValue: false },
+    },
+  });
+}
+
+async function dismissQuestion(questionId) {
+  return firestore('PATCH', `${docPath(FIRESTORE_COLLECTION, questionId)}?${mask(['dismissed', 'answered'])}`, {
+    fields: {
+      dismissed: { booleanValue: true },
+      answered: { booleanValue: false },
+    },
+  });
+}
+
+async function deleteQuestion(questionId) {
+  return firestore('DELETE', docPath(FIRESTORE_COLLECTION, questionId));
+}
+
+async function editQuestionText(questionId, text) {
+  return firestore('PATCH', `${docPath(FIRESTORE_COLLECTION, questionId)}?${mask(['question'])}`, {
+    fields: { question: { stringValue: text.slice(0, 280) } },
+  });
+}
+
+async function saveEditSession(chatId, questionId) {
+  return firestore('PATCH', docPath(EDIT_SESSION_COLLECTION, String(chatId)), {
+    fields: {
+      chatId: { stringValue: String(chatId) },
+      questionId: { stringValue: String(questionId) },
+      createdAt: { stringValue: new Date().toISOString() },
+    },
+  });
+}
+
+async function getEditSession(chatId) {
+  try { return await firestore('GET', docPath(EDIT_SESSION_COLLECTION, String(chatId))); }
+  catch (e) { return null; }
+}
+
+async function clearEditSession(chatId) {
+  try { await firestore('DELETE', docPath(EDIT_SESSION_COLLECTION, String(chatId))); } catch (e) {}
 }
 
 function extractQuestionId(replyText = '') {
@@ -140,10 +184,7 @@ module.exports = async function handler(req, res) {
   try {
     const update = jsonBody(req);
     const message = update.message || update.edited_message;
-
-    if (!message || !message.reply_to_message) {
-      return res.status(200).json({ ok: true, ignored: 'not a reply' });
-    }
+    if (!message) return res.status(200).json({ ok: true, ignored: 'no message' });
 
     const chatId = message.chat?.id;
     const allowedChatId = String(process.env.TELEGRAM_CHAT_ID || '');
@@ -151,26 +192,58 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true, ignored: 'wrong chat' });
     }
 
-    const answer = String(message.text || message.caption || '').trim();
-    if (!answer || answer.startsWith('/')) {
-      return res.status(200).json({ ok: true, ignored: 'empty answer or command' });
+    const text = String(message.text || message.caption || '').trim();
+    if (!text) return res.status(200).json({ ok: true, ignored: 'empty' });
+
+    // If /edit was started, the next normal message becomes the edited question text.
+    const pending = await getEditSession(chatId);
+    const pendingQuestionId = pending?.fields?.questionId?.stringValue;
+    if (pendingQuestionId && !text.startsWith('/')) {
+      await editQuestionText(pendingQuestionId, text);
+      await clearEditSession(chatId);
+      await sendTelegram(chatId, `Edited question <code>${escapeHtml(pendingQuestionId)}</code>. Refresh the website question box.`, message.message_id);
+      return res.status(200).json({ ok: true, edited: pendingQuestionId });
     }
 
-    const originalText = message.reply_to_message.text || message.reply_to_message.caption || '';
+    const originalText = message.reply_to_message?.text || message.reply_to_message?.caption || '';
     const questionId = extractQuestionId(originalText);
+    const command = text.split(/\s+/)[0].toLowerCase();
+
+    if (text.startsWith('/')) {
+      if (!questionId) {
+        await sendTelegram(chatId, 'Reply to a question message that contains an ID line, then use /delete, /dismiss, or /edit.', message.message_id);
+        return res.status(200).json({ ok: true, ignored: 'command missing question id' });
+      }
+
+      if (command === '/delete') {
+        await deleteQuestion(questionId);
+        await sendTelegram(chatId, `Deleted question <code>${escapeHtml(questionId)}</code>.`, message.message_id);
+        return res.status(200).json({ ok: true, deleted: questionId });
+      }
+
+      if (command === '/dismiss') {
+        await dismissQuestion(questionId);
+        await sendTelegram(chatId, `Dismissed question <code>${escapeHtml(questionId)}</code>.`, message.message_id);
+        return res.status(200).json({ ok: true, dismissed: questionId });
+      }
+
+      if (command === '/edit') {
+        await saveEditSession(chatId, questionId);
+        await sendTelegram(chatId, `Send the edited question text now for <code>${escapeHtml(questionId)}</code>.`, message.message_id);
+        return res.status(200).json({ ok: true, editMode: questionId });
+      }
+
+      return res.status(200).json({ ok: true, ignored: 'unknown command' });
+    }
+
     if (!questionId) {
       await sendTelegram(chatId, 'Could not find the question ID. Reply to the bot message that contains an ID line.', message.message_id);
       return res.status(200).json({ ok: true, ignored: 'missing question id' });
     }
 
-    await answerFirestoreQuestion(questionId, answer);
-    await sendTelegram(
-      chatId,
-      `Saved answer for <code>${escapeHtml(questionId)}</code>. Refresh the website question box to see it.`,
-      message.message_id
-    );
-
-    return res.status(200).json({ ok: true, questionId });
+    await answerQuestion(questionId, text);
+    await sendTelegram(chatId, `Saved answer for <code>${escapeHtml(questionId)}</code>. Refresh the website question box to see it.`, message.message_id);
+    return res.status(200).json({ ok: true, answered: questionId });
   } catch (error) {
     console.error('Telegram webhook failed:', error);
     return res.status(200).json({ ok: false, error: error.message || 'Webhook failed' });
