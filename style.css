@@ -4985,3 +4985,28 @@ body.gx-game-mode .topbar-pill{
     filter: none !important;
   }
 }
+
+/* ===== FINAL UX FX PATCH v2: more reliable popup close hit area ===== */
+#ama-name-modal .ama-modal-close,
+#ama-owner-v4-modal .ama-v2-close,
+.gx-changelog-modal .gx-changelog-close{
+  z-index: 8 !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+#ama-name-modal .ama-modal-close::before,
+#ama-owner-v4-modal .ama-v2-close::before,
+.gx-changelog-modal .gx-changelog-close::before{
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+#gx-matrix-transition::after{
+  content: 'opening games' !important;
+  color: rgba(214,255,228,.17) !important;
+  letter-spacing: .22em !important;
+}
