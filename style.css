@@ -5290,3 +5290,23 @@ body.arena-popup-lock #slide-music-player *{
 .anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(8),
 #ama-list.pager-swap-in .ama-item:nth-child(8),
 .skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(8){animation-delay:.30s}
+
+/* ===== FINAL UX FX PATCH v7: restore full-page games with slide animation ===== */
+#gx-games-browser-modal{ display:none !important; pointer-events:none !important; }
+body.gx-game-mode #gx-game-page{
+  display:block !important;
+}
+#gx-game-page.gx-page-opening{
+  animation: arenaGamePageSlideIn .46s cubic-bezier(.22,1,.36,1) both !important;
+}
+#gx-game-page.gx-page-opening .gx-game-page-title,
+#gx-game-page.gx-page-opening .gx-game-page-sub,
+#gx-game-page.gx-page-opening .gx-play-card,
+#gx-game-page.gx-page-opening .gx-game-return{
+  opacity:0;
+  animation: arenaFadeRise .34s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes arenaGamePageSlideIn {
+  from { opacity:.68; transform:translate3d(100vw,0,0); filter:blur(10px); }
+  to { opacity:1; transform:translate3d(0,0,0); filter:blur(0); }
+}
