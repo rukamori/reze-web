@@ -5229,3 +5229,56 @@ body.arena-popup-lock #slide-music-player *{
 #gx-games-browser-modal.open .gx-games-browser-item:nth-child(5){ animation-delay:.44s; }
 #gx-games-browser-modal.open .gx-games-browser-item:nth-child(6){ animation-delay:.49s; }
 #gx-games-browser-modal.open .gx-games-browser-item:nth-child(7){ animation-delay:.54s; }
+
+/* ===== FINAL UX FX PATCH v6: local album art + stacking list animation polish ===== */
+:root{
+  --arena-album-art:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300d7ff'/%3E%3Cstop offset='0.52' stop-color='%236f61ff'/%3E%3Cstop offset='1' stop-color='%23ff8a4c'/%3E%3C/linearGradient%3E%3CradialGradient id='r' cx='30%25' cy='30%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.28'/%3E%3Cstop offset='1' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='400' height='400' rx='70' fill='%23101016'/%3E%3Crect x='20' y='20' width='360' height='360' rx='56' fill='url(%23g)' opacity='.92'/%3E%3Crect x='20' y='20' width='360' height='360' rx='56' fill='url(%23r)'/%3E%3Ccircle cx='200' cy='200' r='108' fill='%230f0f16' opacity='.75'/%3E%3Ccircle cx='200' cy='200' r='88' fill='none' stroke='%23f5f2e9' stroke-opacity='.82' stroke-width='8'/%3E%3Ccircle cx='200' cy='200' r='18' fill='%23f5f2e9' fill-opacity='.96'/%3E%3Cpath d='M238 118v96.5c0 22.5-15.6 40.8-42 46.5-21.3 4.6-41-3.6-44-18.3-3.5-17.3 12.8-33.9 36.4-37 9.3-1.2 18.3-.4 25.6 2.1V151l94-18v70.5c0 22.4-15.6 40.8-42 46.5-21.3 4.6-41-3.6-44-18.3-3.5-17.3 12.8-33.9 36.4-37 9.3-1.2 18.3-.4 25.6 2.1V118l-50 10Z' fill='%23ffffff' fill-opacity='.9'/%3E%3C/svg%3E");
+}
+.tb-music-icon,
+.sp-vinyl,
+.slide-player-panel .sp-vinyl{
+  background-image: var(--arena-album-art) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.tb-music-icon::after{
+  content:none !important;
+}
+.sp-vinyl::before,
+.sp-vinyl::after,
+.slide-player-panel .sp-vinyl::before,
+.slide-player-panel .sp-vinyl::after{
+  display:none !important;
+}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link,
+#ama-list.pager-swap-in .ama-item,
+.skill-scroll-box.pager-swap-in .skill-row-entry{
+  opacity:0;
+  transform:translate3d(0,12px,0) scale(.985);
+  animation:arenaPagerSwapIn .34s cubic-bezier(.22,1,.36,1) forwards;
+}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(1),
+#ama-list.pager-swap-in .ama-item:nth-child(1),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(1){animation-delay:.02s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(2),
+#ama-list.pager-swap-in .ama-item:nth-child(2),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(2){animation-delay:.06s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(3),
+#ama-list.pager-swap-in .ama-item:nth-child(3),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(3){animation-delay:.10s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(4),
+#ama-list.pager-swap-in .ama-item:nth-child(4),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(4){animation-delay:.14s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(5),
+#ama-list.pager-swap-in .ama-item:nth-child(5),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(5){animation-delay:.18s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(6),
+#ama-list.pager-swap-in .ama-item:nth-child(6),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(6){animation-delay:.22s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(7),
+#ama-list.pager-swap-in .ama-item:nth-child(7),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(7){animation-delay:.26s}
+.anilist-scroll-box.pager-swap-in .anilist-entry-link:nth-child(8),
+#ama-list.pager-swap-in .ama-item:nth-child(8),
+.skill-scroll-box.pager-swap-in .skill-row-entry:nth-child(8){animation-delay:.30s}
