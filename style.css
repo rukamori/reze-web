@@ -5527,3 +5527,13 @@ html body.gx-playground-open #gx-game-page.gx-page-opening *{
   animation:arenaStableGameIn .22s cubic-bezier(.22,1,.36,1) both!important;
 }
 @keyframes arenaStableGameIn{from{opacity:0;transform:translateY(10px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+
+/* ===== USER REQUEST FIX v5 2026-07-01: remove Dodge + stable bottom game popups ===== */
+/* Hide/remove any older Dodge cards that older injected game lists may still create. */
+#game-dodge,
+.gx-play-card[data-game="dodge"],
+.gx-game-card[data-game="dodge"],
+.gx-play-card:has(.gx-play-btn[data-game="dodge"]),
+.gx-game-card:has(.gx-game-play[data-game="dodge"]){
+  display:none!important;
+}
