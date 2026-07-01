@@ -4818,3 +4818,170 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 
 /* FINAL AMA controls: sort/page pills at top, reversible votes, no side scrollbar */
 #ama-list{max-height:none!important;overflow:visible!important;scrollbar-width:none!important;-ms-overflow-style:none!important}#ama-list::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}.ama-public-controls{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:.7rem .75rem!important;border-bottom:1px solid rgba(245,242,233,.10)!important;border-top:0!important;flex-wrap:wrap!important;order:-1!important}.ama-sort-pills,.ama-page-pills{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important}.ama-sort-pill,.ama-page-pill,.ama-upvote{border:1.5px solid rgba(230,226,203,.16)!important;background:rgba(255,255,255,.045)!important;color:rgba(245,242,233,.78)!important;font-family:var(--mono,monospace)!important;border-radius:999px!important;min-height:30px!important;padding:0 11px!important;font-size:11px!important;letter-spacing:.08em!important;font-weight:800!important;cursor:pointer!important}.ama-sort-pill.active,.ama-page-pill.active{background:#f5f2e9!important;color:#111!important;border-color:#f5f2e9!important}.ama-vote-row{display:flex!important;justify-content:flex-end!important;margin-top:.55rem!important}.ama-upvote{display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:28px!important}.ama-upvote.voted{opacity:1!important;background:rgba(245,242,233,.14)!important;color:#f5f2e9!important;border-color:rgba(245,242,233,.28)!important}.ama-upvote:hover,.ama-sort-pill:hover,.ama-page-pill:hover{transform:translateY(-1px)!important;background:rgba(255,255,255,.075)!important}@media(max-width:520px){.ama-public-controls{align-items:flex-start!important;flex-direction:column!important}.ama-sort-pill,.ama-page-pill{font-size:10px!important;min-height:28px!important;padding:0 9px!important}}
+
+/* ===== FINAL UX FX PATCH: smooth modals, changelog fade, matrix transition, game topbar lock ===== */
+@keyframes arenaModalBackdropIn {
+  from { opacity: 0; backdrop-filter: blur(0px) saturate(1); -webkit-backdrop-filter: blur(0px) saturate(1); }
+  to { opacity: 1; backdrop-filter: blur(22px) saturate(1.12); -webkit-backdrop-filter: blur(22px) saturate(1.12); }
+}
+@keyframes arenaModalCardIn {
+  0% { opacity: 0; transform: translate3d(0, 22px, 0) scale(.94); filter: blur(12px); }
+  55% { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.01); filter: blur(0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@keyframes arenaFadeRise {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); filter: blur(8px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+}
+
+#ama-name-modal.open,
+#ama-owner-v4-modal.open,
+.gx-changelog-modal.open{
+  animation: arenaModalBackdropIn .32s ease both !important;
+}
+
+#ama-name-modal.open .ama-modal-card,
+#ama-owner-v4-modal.open .ama-v2-card,
+.gx-changelog-modal.open .gx-changelog-card{
+  will-change: transform, opacity, filter;
+  transform-origin: 50% 12%;
+  animation: arenaModalCardIn .48s cubic-bezier(.18,.88,.32,1.16) both !important;
+}
+
+#ama-name-modal.open .ama-modal-kicker,
+#ama-name-modal.open h3,
+#ama-name-modal.open p,
+#ama-name-modal.open .ama-modal-input,
+#ama-name-modal.open .ama-modal-send,
+#ama-owner-v4-modal.open .ama-v2-kicker,
+#ama-owner-v4-modal.open h3,
+#ama-owner-v4-modal.open .ama-v2-sub,
+#ama-owner-v4-modal.open #ama-v4-auth,
+#ama-owner-v4-modal.open #ama-v4-tabs,
+#ama-owner-v4-modal.open #ama-v4-status,
+#ama-owner-v4-modal.open #ama-v4-list,
+.gx-changelog-modal.open .gx-changelog-kicker,
+.gx-changelog-modal.open #gx-changelog-title,
+.gx-changelog-modal.open .gx-changelog-entry{
+  opacity: 0;
+  animation: arenaFadeRise .44s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+#ama-name-modal.open .ama-modal-kicker{ animation-delay: .08s; }
+#ama-name-modal.open h3{ animation-delay: .13s; }
+#ama-name-modal.open p{ animation-delay: .18s; }
+#ama-name-modal.open .ama-modal-input{ animation-delay: .23s; }
+#ama-name-modal.open .ama-modal-send{ animation-delay: .29s; }
+
+#ama-owner-v4-modal.open .ama-v2-kicker{ animation-delay: .06s; }
+#ama-owner-v4-modal.open h3{ animation-delay: .11s; }
+#ama-owner-v4-modal.open .ama-v2-sub{ animation-delay: .16s; }
+#ama-owner-v4-modal.open #ama-v4-auth{ animation-delay: .22s; }
+#ama-owner-v4-modal.open #ama-v4-tabs{ animation-delay: .28s; }
+#ama-owner-v4-modal.open #ama-v4-status{ animation-delay: .32s; }
+#ama-owner-v4-modal.open #ama-v4-list{ animation-delay: .36s; }
+
+.gx-changelog-modal.open .gx-changelog-kicker{ animation-delay: .08s; }
+.gx-changelog-modal.open #gx-changelog-title{ animation-delay: .14s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(1){ animation-delay: .22s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(2){ animation-delay: .28s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(3){ animation-delay: .34s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(4){ animation-delay: .40s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(5){ animation-delay: .46s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(6){ animation-delay: .52s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(7){ animation-delay: .58s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(8){ animation-delay: .64s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(9){ animation-delay: .70s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(10){ animation-delay: .76s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(11){ animation-delay: .82s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(12){ animation-delay: .88s; }
+
+#gx-matrix-transition{
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, rgba(10,18,12,.18), rgba(2,6,4,.78) 48%, rgba(0,0,0,.96) 100%);
+  overflow: hidden;
+}
+#gx-matrix-transition.active{
+  display: block;
+  opacity: 1;
+}
+#gx-matrix-transition canvas{
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: .92;
+  filter: saturate(1.08) contrast(1.04);
+}
+#gx-matrix-transition::after{
+  content: 'playground';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font: 800 clamp(18px, 4vw, 36px)/1 var(--mono, monospace);
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(214,255,228,.12);
+  text-shadow: 0 0 18px rgba(67,255,155,.18);
+  animation: arenaFadeRise .55s ease both;
+}
+
+body.gx-game-mode .topbar-nav-icons,
+body.gx-game-mode .tb-theme-btn,
+body.gx-game-mode .topbar-divider{
+  pointer-events: none !important;
+  opacity: .22 !important;
+  filter: grayscale(1) saturate(.15) !important;
+}
+body.gx-game-mode .tb-icon-btn,
+body.gx-game-mode .tb-theme-btn{
+  pointer-events: none !important;
+}
+body.gx-game-mode .topbar-music-widget,
+body.gx-game-mode .topbar-music-widget *,
+body.gx-game-mode .tb-music-icon,
+body.gx-game-mode .tb-music-text,
+body.gx-game-mode .tb-music-dots{
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+body.gx-game-mode .topbar-pill{
+  box-shadow: 0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+@media (prefers-reduced-motion: reduce){
+  #ama-name-modal.open,
+  #ama-owner-v4-modal.open,
+  .gx-changelog-modal.open,
+  #ama-name-modal.open .ama-modal-card,
+  #ama-owner-v4-modal.open .ama-v2-card,
+  .gx-changelog-modal.open .gx-changelog-card,
+  #ama-name-modal.open .ama-modal-kicker,
+  #ama-name-modal.open h3,
+  #ama-name-modal.open p,
+  #ama-name-modal.open .ama-modal-input,
+  #ama-name-modal.open .ama-modal-send,
+  #ama-owner-v4-modal.open .ama-v2-kicker,
+  #ama-owner-v4-modal.open h3,
+  #ama-owner-v4-modal.open .ama-v2-sub,
+  #ama-owner-v4-modal.open #ama-v4-auth,
+  #ama-owner-v4-modal.open #ama-v4-tabs,
+  #ama-owner-v4-modal.open #ama-v4-status,
+  #ama-owner-v4-modal.open #ama-v4-list,
+  .gx-changelog-modal.open .gx-changelog-kicker,
+  .gx-changelog-modal.open #gx-changelog-title,
+  .gx-changelog-modal.open .gx-changelog-entry,
+  #gx-matrix-transition::after{
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
