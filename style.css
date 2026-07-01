@@ -5010,3 +5010,82 @@ body.gx-game-mode .topbar-pill{
   color: rgba(214,255,228,.17) !important;
   letter-spacing: .22em !important;
 }
+
+/* ===== FINAL UX FX PATCH v3: modal lock + popup-style game page opening ===== */
+#gx-matrix-transition{ display:none !important; opacity:0 !important; pointer-events:none !important; }
+
+body.ama-modal-open,
+body.gx-changelog-open{
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+body.ama-modal-open > *:not(#ama-name-modal):not(#ama-owner-v4-modal):not(.gx-changelog-modal):not(.topbar-container):not(header.topbar-container):not(script):not(style),
+body.gx-changelog-open > *:not(#ama-name-modal):not(#ama-owner-v4-modal):not(.gx-changelog-modal):not(.topbar-container):not(header.topbar-container):not(script):not(style){
+  pointer-events: none !important;
+}
+body.ama-modal-open .topbar-nav-icons,
+body.ama-modal-open .tb-theme-btn,
+body.ama-modal-open .topbar-divider,
+body.gx-changelog-open .topbar-nav-icons,
+body.gx-changelog-open .tb-theme-btn,
+body.gx-changelog-open .topbar-divider{
+  pointer-events: none !important;
+  opacity: .22 !important;
+  filter: grayscale(1) saturate(.12) !important;
+}
+body.ama-modal-open .topbar-music-widget,
+body.ama-modal-open .topbar-music-widget *,
+body.ama-modal-open #slide-music-player,
+body.ama-modal-open #slide-music-player *,
+body.gx-changelog-open .topbar-music-widget,
+body.gx-changelog-open .topbar-music-widget *,
+body.gx-changelog-open #slide-music-player,
+body.gx-changelog-open #slide-music-player *{
+  pointer-events: auto !important;
+}
+body.ama-modal-open #ama-name-modal,
+body.ama-modal-open #ama-owner-v4-modal,
+body.gx-changelog-open .gx-changelog-modal{
+  pointer-events: auto !important;
+}
+
+#gx-game-page{
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+#gx-game-page.gx-page-opening{
+  animation: arenaModalCardIn .48s cubic-bezier(.18,.88,.32,1.16) both !important;
+  transform-origin: 50% 10%;
+  will-change: transform, opacity, filter;
+}
+#gx-game-page.gx-page-opening .gx-game-page-title,
+#gx-game-page.gx-page-opening .gx-game-page-sub,
+#gx-game-page.gx-page-opening .gx-play-card,
+#gx-game-page.gx-page-opening .gx-game-return{
+  opacity: 0;
+  animation: arenaFadeRise .42s cubic-bezier(.22,1,.36,1) forwards;
+}
+#gx-game-page.gx-page-opening .gx-game-return{ animation-delay: .06s; }
+#gx-game-page.gx-page-opening .gx-game-page-title{ animation-delay: .11s; }
+#gx-game-page.gx-page-opening .gx-game-page-sub{ animation-delay: .17s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(1){ animation-delay: .22s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(2){ animation-delay: .28s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(3){ animation-delay: .34s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(4){ animation-delay: .40s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(5){ animation-delay: .46s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(6){ animation-delay: .52s; }
+#gx-game-page.gx-page-opening .gx-play-card:nth-of-type(7){ animation-delay: .58s; }
+
+@media (prefers-reduced-motion: reduce){
+  #gx-game-page.gx-page-opening,
+  #gx-game-page.gx-page-opening .gx-game-page-title,
+  #gx-game-page.gx-page-opening .gx-game-page-sub,
+  #gx-game-page.gx-page-opening .gx-play-card,
+  #gx-game-page.gx-page-opening .gx-game-return{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+    filter:none !important;
+  }
+}
