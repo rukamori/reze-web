@@ -5569,3 +5569,45 @@ html body.gx-playground-open #gx-game-page.gx-page-opening *{
 body.force-popup-open{overflow:hidden!important;}
 #ama-name-modal.open,#ama-owner-v4-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
 #ama-name-modal.open input,#ama-owner-v4-modal.open input,#ama-owner-v4-modal.open textarea{font-size:16px!important;}
+
+/* ===== USER REQUEST FIX v7 2026-07-01: no initial blur/flicker on game/admin popups ===== */
+#force-game-modal.force-game-modal.open,
+#force-game-modal.force-game-modal.open .fgm-panel,
+#force-game-modal.force-game-modal.open .fgm-body,
+#force-game-modal.force-game-modal.open .fgm-game,
+#force-game-modal.force-game-modal.open canvas,
+#final-game-modal.open .fgm-panel,
+#final-game-modal.open .fgm-body,
+#final-game-modal.open .fgm-game{
+  filter:none!important;
+}
+#force-game-modal.force-game-modal.open .fgm-panel,
+#final-game-modal.open .fgm-panel{
+  opacity:1!important;
+  transform:none!important;
+  animation:none!important;
+  transition:none!important;
+  will-change:auto!important;
+}
+#ama-owner-v4-modal.open,
+#ama-owner-v4-modal.open .ama-v2-card,
+#ama-owner-v4-modal.open .ama-v2-kicker,
+#ama-owner-v4-modal.open h3,
+#ama-owner-v4-modal.open .ama-v2-sub,
+#ama-owner-v4-modal.open #ama-v4-auth,
+#ama-owner-v4-modal.open #ama-v4-tabs,
+#ama-owner-v4-modal.open #ama-v4-status,
+#ama-owner-v4-modal.open #ama-v4-list,
+#ama-owner-v4-modal.open .ama-v2-item{
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+  animation:none!important;
+  transition:none!important;
+}
+#ama-owner-v4-modal.open .ama-v2-card{
+  will-change:auto!important;
+}
+#tb-eq-bars[style*="flex"]{
+  display:flex!important;
+}
