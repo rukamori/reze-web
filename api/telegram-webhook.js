@@ -351,7 +351,7 @@ module.exports = async function handler(req, res) {
       const sent = await sendChunkedLines(
         chatId,
         message.message_id,
-        '<b>Answered questions</b>\nUse <code>/edit 2</code> to edit the answer for question 2 from this list.',
+        '<b>Answered questions</b>',
         lines,
       );
       return res.status(200).json({ ok: true, answeredCount: items.length, messages: sent });
