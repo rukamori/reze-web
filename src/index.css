@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════════
-   therealreze — editorial field-notes system
+   v3rsi0n — editorial field-notes system
    Warm drafting paper, ink, one vermilion mark. Visual system modelled on
    curialy.tech (tokens, type, motion); copy and artwork are original.
    ══════════════════════════════════════════════════════════════════════ */
@@ -97,6 +97,10 @@
   --dur-flash-in: 0.45s;
   --dur-flash-out: 0.65s;
   --tick-stage: 2.4s;
+
+  /* callouts */
+  --warn-bg: #f3e3bf;
+  --warn-fg: #7a5200;
 
   /* spacing (4px base) */
   --s-1: 4px;
@@ -538,16 +542,50 @@ html.js .spine[data-armed][data-inview] {
 
 /* ══════════════ alive layer ══════════════ */
 
-/* Frosted drafting film: only the 64px sticky header uses this */
-.frost {
-  background: color-mix(in srgb, var(--color-paper) 72%, transparent);
-  -webkit-backdrop-filter: blur(var(--blur-header)) saturate(1.4);
-  backdrop-filter: blur(var(--blur-header)) saturate(1.4);
+/* Header frost: one permanently mounted layer; only its opacity changes, so the
+   backdrop never pops in on the first scroll frame. No saturate(): it re-rasterises. */
+.site-header {
+  isolation: isolate;
+  transition: border-color var(--dur-3) var(--ease-out);
+}
+.nav-frost {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-paper) 82%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transform: translateZ(0);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+[data-scrolled] .nav-frost {
+  opacity: 1;
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .frost {
-    background: color-mix(in srgb, var(--color-paper) 95%, transparent);
+  .nav-frost {
+    background: color-mix(in srgb, var(--color-paper) 96%, transparent);
   }
+}
+/* Scroll progress hairline, driven by --sp (0–1) on <html> */
+.nav-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  background: var(--color-vermilion);
+  transform-origin: left center;
+  transform: scaleX(var(--sp, 0));
+}
+
+/* Translucent floating bar (reserved for a future admin bar only) */
+.frost {
+  background: color-mix(in srgb, var(--color-paper) 82%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 /* FIG. 1: depth parallax wrapper, flash wrapper, selectable slab */
@@ -665,6 +703,10 @@ html.js [data-reveal]:focus-within {
   transform: none;
   filter: none;
 }
+/* once the focus-in has landed, drop the filter transition entirely */
+html.js [data-reveal="focus"][data-settled] {
+  transition: none;
+}
 
 /* Mobile sheet */
 .sheet {
@@ -717,6 +759,9 @@ html.js [data-reveal]:focus-within {
   }
   .lens {
     display: none !important;
+  }
+  .nav-progress {
+    transform: scaleX(0) !important;
   }
   .sig span:hover {
     transform: none !important;
