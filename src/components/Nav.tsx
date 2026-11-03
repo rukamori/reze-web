@@ -71,7 +71,7 @@ export function Nav() {
       )}
     >
       <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
-        <a href="#top" aria-label="therealreze, back to top" className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
+        <a href="#top" aria-label="v3rsi0n, back to top" className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
           <Wordmark />
         </a>
 

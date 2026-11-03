@@ -5,11 +5,11 @@ import { Wordmark } from "./Wordmark";
 import { Kicker, StatusDot } from "./ui";
 
 /** Decorative signature, one span per letter for the hover play (aria-hidden). */
-const SIGNATURE = Array.from("therealreze.");
+const SIGNATURE = Array.from("v3rsi0n.");
 
 const ELSEWHERE = [
   { name: "GitHub", url: "https://github.com/4nx3b" },
-  { name: "Telegram", url: "https://t.me/therealreze" },
+  { name: "Telegram", url: "https://t.me/v3rsi0n" },
   { name: "Last.fm", url: "https://www.last.fm/user/zensxin" },
   { name: "AniList", url: "https://anilist.co/user/zensxin/" },
 ];
@@ -66,7 +66,7 @@ export function Footer() {
         </div>
 
         <div className="relative mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-6">
-          <span className="font-mono text-xs text-graphite">© 2026 therealreze</span>
+          <span className="font-mono text-xs text-graphite">© 2026 v3rsi0n</span>
           <span className="font-mono text-xs text-graphite">Versioned in public, tested on real hardware.</span>
         </div>
         {/* Giant clipped signature */}

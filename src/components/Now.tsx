@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowUpRight, Check, Pause, Play as PlayIcon, Volume2 } from "lucide-react";
 import { cn } from "../utils/cn";
-import { ANIME, INTERESTS, MUSIC, RADIO_TRACKS } from "../lib/data";
+import { ABOUT, ANIME, MUSIC, RADIO_TRACKS } from "../lib/data";
 import { Play } from "./Play";
 import { Reveal } from "./Reveal";
 import { Kicker, SectionHead, StatusDot } from "./ui";
@@ -241,17 +241,88 @@ function AnimeStats() {
   );
 }
 
+function MeTab() {
+  const f = ABOUT.facts;
+  return (
+    <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+      <div>
+        <h3 className="font-display text-page font-normal text-ink">The short version.</h3>
+        <p className="mt-4 font-mono text-md text-ink-soft">
+          {f.age} <span aria-hidden className="text-graphite">·</span> {f.gender}{" "}
+          <span aria-hidden className="text-graphite">·</span>{" "}
+          <span role="img" aria-label={f.country}>
+            {f.flag}
+          </span>
+        </p>
+        <p className="mt-3 max-w-[48ch] text-lg text-ink-soft">{f.line}</p>
+
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">Into</h4>
+        <ul className="mt-3 border-t border-rule">
+          {ABOUT.interests.map((it) => (
+            <li key={it.title} className="border-b border-rule py-4">
+              <p className="text-lg font-semibold text-ink">{it.title}</p>
+              <p className="mt-1 text-md text-ink-soft">{it.desc}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h4 className="font-mono text-xs uppercase tracking-[0.14em] text-graphite">Devices</h4>
+        <table className="mt-3 w-full border-t border-ink text-left">
+          <thead className="sr-only sm:not-sr-only">
+            <tr className="border-b border-rule font-mono text-xs uppercase tracking-[0.12em] text-graphite">
+              <th scope="col" className="py-3 pr-4 font-normal">Role</th>
+              <th scope="col" className="py-3 pr-4 font-normal">Device</th>
+              <th scope="col" className="py-3 font-normal">Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ABOUT.devices.map((d) => (
+              <tr key={d.role} className="flex flex-col gap-1 border-b border-rule py-4 sm:table-row sm:py-0">
+                <th scope="row" className="font-mono text-xs font-normal uppercase tracking-[0.12em] text-vermilion-ink sm:py-4 sm:pr-4 sm:align-top">
+                  {d.role}
+                </th>
+                <td className="text-lg font-medium text-ink sm:py-4 sm:pr-4 sm:align-top">{d.device}</td>
+                <td className="text-md text-ink-soft sm:py-4 sm:align-top">
+                  <span className="font-mono text-sm">{d.detail}</span>
+                  {d.aside && <span className="block text-sm italic text-graphite">({d.aside})</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">Games · {ABOUT.gamesLead}</h4>
+        <ol className="mt-3 border-t border-ink">
+          {ABOUT.games.map((g, i) => (
+            <li key={g} className="flex items-baseline gap-4 border-b border-rule py-3">
+              <span className="w-6 shrink-0 font-mono text-xs text-graphite tabular">{String(i + 1).padStart(2, "0")}</span>
+              <span className="text-lg text-ink">{g}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
+  {
+    id: "me",
+    label: "Me",
+    render: () => <MeTab />,
+  },
   {
     id: "anime",
     label: "Anime",
     render: () => (
       <UseCase
-        title="Arcs with real structure."
-        prompt="anilist stats --user zensxin"
-        checks={[INTERESTS[0].desc, `${ANIME.count} titles in and still taking recommendations.`, "Tracked on AniList, every episode logged."]}
+        title="Logged on AniList."
+        prompt={`anilist stats --user ${ANIME.handle}`}
+        checks={[`${ANIME.count} titles completed.`, `${ANIME.episodes.toLocaleString("en-US")} episodes logged.`, `Mean score ${ANIME.mean.toFixed(1)}.`]}
         get="The full watch list, scored."
-        link={{ href: ANIME.url, label: "zensxin on AniList" }}
+        link={{ href: ANIME.url, label: `${ANIME.handle} on AniList` }}
         aside={<AnimeStats />}
       />
     ),
@@ -261,25 +332,12 @@ const TABS = [
     label: "Music",
     render: () => (
       <UseCase
-        title="City pop for compile times."
+        title="Mostly J-pop and EDM."
         prompt={`last.fm now --user ${MUSIC.handle}`}
-        checks={[INTERESTS[2].desc, `Now on rotation: “${MUSIC.now.track}” by ${MUSIC.now.artist}.`, `Genres: ${MUSIC.genres.join(", ")}.`]}
+        checks={[ABOUT.interests[2].desc, "Scrobbled on Last.fm."]}
         get="Scrobbles, top artists, the lot."
-        link={{ href: MUSIC.url, label: "zensxin on Last.fm" }}
+        link={{ href: MUSIC.url, label: `${MUSIC.handle} on Last.fm` }}
         aside={<Radio />}
-      />
-    ),
-  },
-  {
-    id: "gaming",
-    label: "Gaming",
-    render: () => (
-      <UseCase
-        title="Systems worth mastering."
-        prompt="ls ~/games --sort=depth"
-        checks={[INTERESTS[1].desc, "Same instinct as reading a kernel config: learn the rules, then bend them.", "Four small games live in the next tab."]}
-        get="A playground you can open right here."
-        link={{ href: "#now-tab-play", label: "Open the Play tab" }}
       />
     ),
   },
@@ -293,19 +351,15 @@ const TABS = [
           <p className="mt-4 max-w-[48ch] text-lg text-ink-soft">
             Four canvas games in a modal, nothing at stake. High scores stay in your browser. Escape closes any of them.
           </p>
-          <div className="mt-6 rounded-[var(--radius-md)] border border-rule-strong bg-card p-4">
-            <Kicker>Example</Kicker>
-            <p className="mt-2 font-mono text-md text-ink">
-              <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
-              ./snake --wasd
-            </p>
-          </div>
         </div>
         <Play />
       </div>
     ),
   },
 ] as const;
+
+/** Hashes that select a tab: #about → Me, #play → Play, #now-tab-<id> → that tab. */
+const HASH_TAB: Record<string, string> = { "#about": "me", "#play": "play" };
 
 export function Now() {
   const [active, setActive] = useState(0);
@@ -327,7 +381,8 @@ export function Now() {
   // "#now-tab-play" links switch to the Play tab
   useEffect(() => {
     const onHash = () => {
-      const i = TABS.findIndex((t) => `#now-tab-${t.id}` === window.location.hash);
+      const h = window.location.hash;
+      const i = TABS.findIndex((t) => `#now-tab-${t.id}` === h || HASH_TAB[h] === t.id);
       if (i >= 0) setActive(i);
     };
     onHash();
@@ -338,15 +393,16 @@ export function Now() {
   const tab = TABS[active];
 
   return (
-    <section id="now" aria-labelledby="now-title" className="page py-24 lg:py-32">
+    <section id="about" aria-labelledby="now-title" className="page relative py-24 lg:py-32">
+      <span id="play" aria-hidden className="absolute top-0" />
       <SectionHead
-        num="04"
-        label="Now & Play"
+        num="02"
+        label="About"
         title={
           <span id="now-title">
-            What I'm into
+            The person behind
             <br />
-            when <em className="ital">nothing</em> is flashing.
+            the <em className="ital">builds</em>.
           </span>
         }
       />
