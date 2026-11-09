@@ -13,11 +13,34 @@ export function Nav() {
   const menuBtn = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
+  // One rAF-coalesced listener: frost state with hysteresis (no flapping near the
+  // threshold) and the --sp page progress for the hairline. setState only on change.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    let raf = 0;
+    let on = false;
+    const root = document.documentElement;
+    const apply = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const next = on ? y > 4 : y > 12;
+      if (next !== on) {
+        on = next;
+        setScrolled(next);
+      }
+      const max = Math.max(1, root.scrollHeight - window.innerHeight);
+      root.style.setProperty("--sp", Math.min(1, y / max).toFixed(4));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    apply();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   // Close on desktop resize
@@ -65,11 +88,12 @@ export function Nav() {
   return (
     <>
     <header
-      className={cn(
-        "sticky top-0 z-50 border-b transition-[background-color,border-color] duration-[var(--dur-3)] ease-[var(--ease-out)]",
-        scrolled ? "frost border-rule" : "border-transparent bg-transparent"
-      )}
+      data-scrolled={scrolled || undefined}
+      className={cn("site-header sticky top-0 z-50 border-b", scrolled ? "border-rule" : "border-transparent")}
     >
+      {/* Permanently mounted: only its opacity changes, so the backdrop never pops in */}
+      <div aria-hidden className="nav-frost" />
+      <div aria-hidden className="nav-progress" />
       <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
         <a href="#top" aria-label="v3rsi0n, back to top" className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
           <Wordmark />
