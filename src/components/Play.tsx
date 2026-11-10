@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import { GAMES, QUIZ, type Game } from "../lib/data";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Crosshair, Flag, Gauge, Gamepad2, HelpCircle, Timer, Wind, X, type LucideIcon } from "lucide-react";
-import { MonoTag, Pill, StatusDot } from "./ui";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
+import { MonoTag, StatusDot } from "./ui";
 
 /* ================= Snake ================= */
 
@@ -14,6 +14,14 @@ function SnakeGame() {
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(() => Number(localStorage.getItem("reze_snake_best") ?? 0));
   const [dead, setDead] = useState(false);
+  // Still board until the visitor presses Play or uses a control
+  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
+  const start = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    setStarted(true);
+  }, []);
   const state = useRef({
     snake: [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }],
     dir: { x: 1, y: 0 },
@@ -42,10 +50,11 @@ function SnakeGame() {
   };
 
   const turn = useCallback((dx: number, dy: number) => {
+    start();
     const s = state.current;
     if (s.dir.x === -dx && s.dir.y === -dy) return;
     s.next = { x: dx, y: dy };
-  }, []);
+  }, [start]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -92,7 +101,7 @@ function SnakeGame() {
 
     const iv = setInterval(() => {
       const s = state.current;
-      if (s.over) return;
+      if (s.over || !startedRef.current) return;
       s.dir = s.next;
       const head = { x: s.snake[0].x + s.dir.x, y: s.snake[0].y + s.dir.y };
       if (head.x < 0 || head.y < 0 || head.x >= SNAKE_N || head.y >= SNAKE_N || s.snake.some((c) => c.x === head.x && c.y === head.y)) {
@@ -127,6 +136,19 @@ function SnakeGame() {
       </div>
       <div className="relative">
         <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="block h-auto max-w-full rounded-[var(--radius-sm)] border border-rule-strong" />
+        {!started && !dead && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-composer/90 px-4 text-center">
+            <button
+              type="button"
+              onClick={start}
+              aria-label="Start Snake"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+            >
+              <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
+            </button>
+            <MonoTag className="text-ink-soft">Tap Play, or use arrows / WASD / the pad</MonoTag>
+          </div>
+        )}
         {dead && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
             <MonoTag className="text-vermilion-ink">Signal lost — self-sabotage confirmed</MonoTag>
@@ -156,7 +178,16 @@ function PongGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scores, setScores] = useState({ you: 0, ai: 0 });
   const [winner, setWinner] = useState<null | "you" | "ai">(null);
-  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: 3.2, vy: 2.1, pyTarget: 80, you: 0, ai: 0, paused: false });
+  // Frozen court until Play or a tap on it (hovering never starts it)
+  const [started, setStarted] = useState(false);
+  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: 3.2, vy: 2.1, pyTarget: 80, you: 0, ai: 0, paused: true });
+  const start = useCallback(() => {
+    if (!s.current.paused || winnerRef.current) return;
+    s.current.paused = false;
+    setStarted(true);
+  }, []);
+  const winnerRef = useRef<null | "you" | "ai">(null);
+  winnerRef.current = winner;
 
   const reset = (full: boolean) => {
     const st = s.current;
@@ -184,6 +215,8 @@ function PongGame() {
       s.current.pyTarget = ((e.clientY - r.top) / r.height) * 220 - 30;
     };
     cv.addEventListener("pointermove", onMove);
+    const onDown = () => start();
+    cv.addEventListener("pointerdown", onDown);
 
     let raf = 0;
     const loop = () => {
@@ -230,6 +263,7 @@ function PongGame() {
     return () => {
       cancelAnimationFrame(raf);
       cv.removeEventListener("pointermove", onMove);
+      cv.removeEventListener("pointerdown", onDown);
     };
   }, []);
 
@@ -242,6 +276,19 @@ function PongGame() {
       </div>
       <div className="relative">
         <canvas ref={canvasRef} width={300} height={220} className="block h-auto max-w-full cursor-none touch-none rounded-[var(--radius-sm)] border border-rule-strong" />
+        {!started && !winner && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-composer/90 px-4 text-center">
+            <button
+              type="button"
+              onClick={start}
+              aria-label="Start Ping Pong"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+            >
+              <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
+            </button>
+            <MonoTag className="text-ink-soft">Tap Play or tap the court, then steer with the pointer</MonoTag>
+          </div>
+        )}
         {winner && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
             <MonoTag className={winner === "you" ? "text-moss-ink" : "text-vermilion-ink"}>
@@ -423,7 +470,7 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
       >
         <div className="flex items-center justify-between border-b border-rule px-5 py-2">
           <div className="flex min-w-0 items-center gap-2.5">
-            <StatusDot tone="vermilion" label="Playing" className="shrink-0" />
+            <StatusDot tone="graphite" label="Ready" className="shrink-0" />
             <MonoTag className="truncate text-graphite">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
           </div>
           <button onClick={onClose} aria-label="Close game" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] hover:text-ink">
@@ -448,10 +495,7 @@ const GAME_ICONS: Record<Game["icon"], LucideIcon> = {
   snake: Gamepad2,
   pong: Gauge,
   quiz: HelpCircle,
-  flappy: Wind,
-  mines: Flag,
   reaction: Timer,
-  dodge: Crosshair,
 };
 
 /** The playground — game rows inside the § 04 "Play" tab. Game logic is unchanged. */
@@ -492,7 +536,6 @@ export function Play() {
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className={cn("text-md font-semibold", game.playable ? "text-ink" : "text-ink-soft")}>{game.name}</span>
-                    {!game.playable && <Pill className="py-0.5">soon</Pill>}
                   </span>
                   <span className="mt-1 block text-sm text-ink-soft">{game.desc}</span>
                 </span>

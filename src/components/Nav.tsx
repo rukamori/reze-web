@@ -83,12 +83,49 @@ export function Nav() {
     };
   }, [open]);
 
+  // Header tone: dark frost + light text while a dark (.panel-scope) section sits
+  // under the 64px header band. One IntersectionObserver, rebuilt on resize.
+  const [tone, setTone] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    let io: IntersectionObserver | null = null;
+    const under = new Set<Element>();
+    const build = () => {
+      io?.disconnect();
+      under.clear();
+      io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) under.add(e.target);
+            else under.delete(e.target);
+          }
+          setTone(under.size ? "dark" : "light");
+        },
+        { rootMargin: `0px 0px -${Math.max(0, window.innerHeight - 64)}px 0px` }
+      );
+      document.querySelectorAll(".panel-scope").forEach((el) => io!.observe(el));
+    };
+    build();
+    let t = 0;
+    const onResize = () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(build, 150);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => {
+      io?.disconnect();
+      window.clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   const close = () => setOpen(false);
 
   return (
     <>
     <header
       data-scrolled={scrolled || undefined}
+      data-tone={tone}
       className={cn("site-header sticky top-0 z-50 border-b", scrolled ? "border-rule" : "border-transparent")}
     >
       {/* Permanently mounted: only its opacity changes, so the backdrop never pops in */}
@@ -104,7 +141,7 @@ export function Nav() {
             <li key={l.href}>
               <a
                 href={l.href}
-                className="text-[15px] text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-ink"
+                className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]"
               >
                 {l.label}
               </a>
@@ -113,8 +150,8 @@ export function Nav() {
         </ul>
 
         <div className="hidden items-center gap-6 lg:flex">
-          <span className="hidden font-mono text-xs text-graphite tabular xl:inline">IST {clock}</span>
-          <a href="#ask" className={buttonClass("ink", "min-h-10 px-5 text-[15px]")}>
+          <span className="hidden font-mono text-xs text-[var(--text-3)] tabular xl:inline">IST {clock}</span>
+          <a href="#ask" className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
             Ask me
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
@@ -127,7 +164,7 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] lg:hidden"
+          className="nav-menu-btn flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] lg:hidden"
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
         </button>

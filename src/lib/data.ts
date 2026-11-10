@@ -45,7 +45,7 @@ export const ROM_POST = {
   dateLabel: "27 September 2026",
   maintainer: "@v3rsi0n",
   maintainerUrl: "https://t.me/v3rsi0n",
-  thumbnail: "/work/lunaris-3.12.jpg",
+  thumbnail: "work/lunaris-3.12.jpg",
   thumbnailWidth: 1672,
   thumbnailHeight: 941,
   thumbnailAlt: "LunarisOS AOSP banner: v3rsi0n, QPR 02, Stable · Secure · Refined",
@@ -120,16 +120,13 @@ export const ANIME = {
 
 /* ---------- Play ---------- */
 
-export type Game = { id: string; icon: "snake" | "pong" | "quiz" | "flappy" | "mines" | "reaction" | "dodge"; name: string; desc: string; playable: boolean };
+export type Game = { id: string; icon: "snake" | "pong" | "quiz" | "reaction"; name: string; desc: string; playable: boolean };
 
 export const GAMES: Game[] = [
   { id: "snake", icon: "snake", name: "Snake", desc: "Classic game. High chance of self-sabotage.", playable: true },
   { id: "pong", icon: "pong", name: "Ping Pong", desc: "You vs an AI paddle. First to 5 wins.", playable: true },
   { id: "quiz", icon: "quiz", name: "Roast Quiz", desc: "A personality test but every answer is a personal attack.", playable: true },
-  { id: "flappy", icon: "flappy", name: "Flappy", desc: "Infuriating physics. Avoid the pipes.", playable: false },
-  { id: "mines", icon: "mines", name: "Minesweeper", desc: "Classic logic. Avoid the mines.", playable: false },
   { id: "reaction", icon: "reaction", name: "Reaction Test", desc: "Click when it turns green.", playable: true },
-  { id: "dodge", icon: "dodge", name: "Dodge", desc: "Survive against angry geometry.", playable: false },
 ];
 
 export const QUIZ = [
