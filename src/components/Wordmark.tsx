@@ -4,7 +4,7 @@ import { cn } from "../utils/cn";
 export function Wordmark({ className, spark = true }: { className?: string; spark?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <span aria-hidden className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-ink">
+      <span aria-hidden className="wm-tile relative flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-ink">
         <span className="font-mono text-[11px] font-medium leading-none text-paper">v</span>
         <span className={cn("absolute right-[5px] top-[5px] h-[5px] w-[5px] rounded-full bg-vermilion", spark && "m-spark")} />
       </span>

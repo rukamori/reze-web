@@ -79,7 +79,7 @@ export function Hero() {
         <div className="lg:col-span-7">
           <div className="m-rise flex flex-wrap items-center gap-x-5 gap-y-3" style={{ ["--rise-y" as string]: "10px" }}>
             <p className="flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]">
-              <span className="text-vermilion-ink">§ 00</span>
+              <span className="shrink-0 whitespace-nowrap text-vermilion-ink">§ 00</span>
               <span aria-hidden className="h-px w-8 bg-rule-strong" />
               <span className="text-graphite">{HERO.kicker}</span>
             </p>
