@@ -718,6 +718,149 @@ html.js .spine[data-armed][data-inview] {
   animation-play-state: paused;
 }
 
+/* ---------- Header song pill (play square · spinning disc · title · list) ---------- */
+.hp {
+  height: 48px;
+  border: 1px solid var(--text);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 var(--text);
+  background: color-mix(in srgb, var(--color-paper) 70%, transparent);
+  overflow: hidden;
+  transition:
+    border-color var(--dur-3) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out),
+    background-color var(--dur-3) var(--ease-out);
+}
+.hp-play {
+  border-right: 1px solid var(--text);
+}
+.hp-artist {
+  color: var(--color-vermilion-ink);
+}
+.site-header[data-tone="dark"] .hp {
+  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+}
+.site-header[data-tone="dark"] .hp-artist {
+  color: var(--color-panel-err);
+}
+.hp-compact {
+  height: 44px;
+  box-shadow: 3px 3px 0 var(--text);
+}
+.hp-compact .hp-play {
+  width: 44px;
+}
+@keyframes disc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.disc {
+  animation: disc-spin 8s linear infinite;
+  animation-play-state: paused;
+}
+.disc[data-playing] {
+  animation-play-state: running;
+}
+
+/* Song panel: one element, two placements. Open = list under the header;
+   mini = small visible card bottom-right while a song plays. */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.song-panel {
+  position: fixed;
+  z-index: 80;
+  border: 1px solid var(--color-ink);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
+.song-panel[hidden] {
+  display: none;
+}
+.song-panel[data-mode="open"] {
+  top: 72px;
+  right: var(--gutter);
+  width: min(380px, calc(100vw - 2 * var(--gutter)));
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
+  transform-origin: top right;
+  animation: pop-in var(--dur-3) var(--ease-out) both;
+}
+.song-panel[data-mode="mini"] {
+  right: 16px;
+  bottom: 16px;
+  width: 240px;
+  animation: pop-in var(--dur-3) var(--ease-out) both;
+}
+.sp-btn {
+  display: flex;
+  height: 44px;
+  width: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #f3efe659;
+  color: var(--color-panel-text);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+.sp-btn:hover {
+  border-color: var(--color-panel-text);
+}
+.song-panel :focus-visible {
+  outline-color: var(--color-paper);
+}
+.range-dark::-webkit-slider-runnable-track {
+  background: #f3efe659;
+}
+.range-dark::-moz-range-track {
+  background: #f3efe659;
+}
+.range-dark::-webkit-slider-thumb {
+  background: var(--color-paper);
+  border-color: var(--color-panel);
+  box-shadow: 0 0 0 1px var(--color-paper);
+}
+.range-dark::-moz-range-thumb {
+  background: var(--color-paper);
+  border-color: var(--color-panel);
+}
+@keyframes bars {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.6);
+  }
+}
+.sp-bars {
+  animation: bars 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .disc,
+  .sp-bars {
+    animation: none !important;
+  }
+  .song-panel[data-mode] {
+    animation: fade-only var(--dur-2) linear both !important;
+  }
+}
+@keyframes fade-only {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Playlist shelf: swipeable coverflow. JS writes --ry/--tz/--s/--o per card,
    --hx/--hy add the desktop hover tilt. Borderless covers. */
 .pl-wrap {
