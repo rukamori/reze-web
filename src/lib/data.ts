@@ -207,10 +207,27 @@ export const AMA_KEYS = {
   sort: "ama_public_sort_v6",
 };
 
-/* ---------- Signal radio (real audio streams) ---------- */
+/* ---------- Music: full songs via YouTube's official embed ---------- */
 
-export const RADIO_TRACKS = [
-  { id: "01", title: "in the pool", artist: "kensuke ushio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-  { id: "02", title: "night drive", artist: "signal radio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
-  { id: "03", title: "zephyr loop", artist: "signal radio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+export type Track = { id: string; title: string; artist: string; youtubeId: string };
+
+/** Played through YouTube's IFrame player; swap a youtubeId here if an upload disappears. */
+export const TRACKS: Track[] = [
+  { id: "abgrund", title: "Abgrund", artist: "Elous\u2227.FZ", youtubeId: "CcI0JfgKWig" },
+  { id: "journey", title: "Journey To The Rainbows", artist: "Ardolf", youtubeId: "T3Mj0St285A" },
+  { id: "orthodox", title: "Orthodox", artist: "tokiwa", youtubeId: "1yt3p-YGhLk" },
 ];
+
+export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+export type Playlist = { id: string; label: string; title: string; thumbnail: string; itemCount: number | null };
+
+/** Fallbacks (from YouTube oEmbed); /api/yt-playlists refreshes title, cover and count live. */
+export const PLAYLISTS: Playlist[] = [
+  { id: "PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O", label: "Japanese", title: "peak jpop", thumbnail: "https://i.ytimg.com/vi/tuZty35Fk7M/hqdefault.jpg", itemCount: 525 },
+  { id: "PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC", label: "English", title: "high nights \u2604\ufe0f\ud83d\udc7e", thumbnail: "https://i.ytimg.com/vi/8BiLurrzFRw/hqdefault.jpg", itemCount: null },
+  { id: "PL-fWIzgBd5AyeDYfArAo6ZEKl3xxeG7mc", label: "Hindi", title: "Lesss Vibee \ud83d\udcab", thumbnail: "https://i.ytimg.com/vi/HcOBSj_uSvM/hqdefault.jpg", itemCount: null },
+  { id: "PL-fWIzgBd5AxneK5vQfmaQskYmuwbXZ_k", label: "Phonk", title: "phonk time \ud83d\udca5", thumbnail: "https://i.ytimg.com/vi/NT4eF9YsYnM/hqdefault.jpg", itemCount: null },
+  { id: "PL-fWIzgBd5Aw0-x8aDOYMOZcoD6jmzPWs", label: "Mix", title: "mix", thumbnail: "https://i.ytimg.com/vi/QygzZXrHcdo/hqdefault.jpg", itemCount: null },
+];
+

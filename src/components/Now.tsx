@@ -1,167 +1,11 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowUpRight, Check, Pause, Play as PlayIcon, Volume2 } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import { cn } from "../utils/cn";
-import { ABOUT, ANIME, MUSIC, RADIO_TRACKS } from "../lib/data";
+import { ABOUT, ANIME, MUSIC } from "../lib/data";
+import { PlaylistShelf, TrackPlayer } from "./Music";
 import { Play } from "./Play";
 import { Reveal } from "./Reveal";
-import { Kicker, SectionHead, StatusDot } from "./ui";
-
-const fmt = (s: number) => {
-  if (!Number.isFinite(s)) return "0:00";
-  const m = Math.floor(s / 60);
-  const ss = Math.floor(s % 60);
-  return `${m}:${String(ss).padStart(2, "0")}`;
-};
-
-/** Real audio engine — play/pause, seek, volume, track switching. Never autoplays. */
-function Radio() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [vol, setVol] = useState(72);
-  const [err, setErr] = useState(false);
-
-  useEffect(() => {
-    const a = new Audio();
-    a.preload = "none";
-    audioRef.current = a;
-    const onTime = () => setProgress(a.currentTime);
-    const onMeta = () => setDuration(a.duration);
-    const onEnd = () => setIdx((i) => (i + 1) % RADIO_TRACKS.length);
-    const onErr = () => { setErr(true); setPlaying(false); };
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("loadedmetadata", onMeta);
-    a.addEventListener("ended", onEnd);
-    a.addEventListener("error", onErr);
-    return () => {
-      a.pause();
-      a.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("loadedmetadata", onMeta);
-      a.removeEventListener("ended", onEnd);
-      a.removeEventListener("error", onErr);
-      a.src = "";
-    };
-  }, []);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.volume = vol / 100;
-  }, [vol]);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    setErr(false);
-    setProgress(0);
-    a.src = RADIO_TRACKS[idx].src;
-    if (playing) a.play().catch(() => setPlaying(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx]);
-
-  const toggle = async () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (playing) {
-      a.pause();
-      setPlaying(false);
-    } else {
-      try {
-        if (!a.src || a.src !== RADIO_TRACKS[idx].src) a.src = RADIO_TRACKS[idx].src;
-        await a.play();
-        setErr(false);
-        setPlaying(true);
-      } catch {
-        setErr(true);
-        setPlaying(false);
-      }
-    }
-  };
-
-  const seek = (v: number) => {
-    const a = audioRef.current;
-    if (!a || !Number.isFinite(a.duration)) return;
-    a.currentTime = v;
-    setProgress(v);
-  };
-
-  const track = RADIO_TRACKS[idx];
-
-  return (
-    <div className="rounded-[var(--radius-lg)] border border-ink bg-composer p-5 shadow-[var(--shadow-ink-sm)]">
-      <div className="flex items-center justify-between gap-3">
-        <Kicker className="text-ink-soft">Signal radio</Kicker>
-        <StatusDot tone={playing ? "moss" : "graphite"} label={playing ? "On air" : "Standby"} />
-      </div>
-
-      <div className="mt-5 flex items-center gap-4">
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={playing ? "Pause" : "Play"}
-          className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors duration-[var(--dur-2)]",
-            playing ? "bg-ink text-paper hover:bg-ink-soft" : "bg-vermilion text-ink hover:bg-vermilion-deep"
-          )}
-        >
-          {playing ? (
-            <Pause aria-hidden className="h-4 w-4 fill-current" strokeWidth={1.5} />
-          ) : (
-            <PlayIcon aria-hidden className="h-4 w-4 translate-x-px fill-current" strokeWidth={1.5} />
-          )}
-        </button>
-        <div className="min-w-0">
-          <p className="truncate font-display text-title text-ink">{track.title}</p>
-          <p className="truncate font-mono text-xs text-graphite">{track.artist} · stream {track.id}</p>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <input
-          type="range"
-          min={0}
-          max={Math.max(1, Math.floor(duration))}
-          value={Math.floor(progress)}
-          onChange={(e) => seek(Number(e.target.value))}
-          aria-label="Seek"
-          className="range w-full"
-        />
-        <div className="flex justify-between font-mono text-xs text-graphite tabular">
-          <span>{fmt(progress)}</span>
-          <span>{err ? "stream offline" : fmt(duration)}</span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-4">
-        <div className="flex gap-1.5" role="group" aria-label="Streams">
-          {RADIO_TRACKS.map((t, i) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setIdx(i)}
-              aria-label={`Stream ${t.id}: ${t.title}`}
-              aria-pressed={i === idx}
-              className={cn(
-                "flex h-11 min-w-11 items-center justify-center rounded-full border px-2.5 font-mono text-xs transition-colors duration-[var(--dur-2)]",
-                i === idx ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
-              )}
-            >
-              {t.id}
-            </button>
-          ))}
-        </div>
-        <label className="flex items-center gap-2.5">
-          <Volume2 aria-hidden className="h-4 w-4 text-graphite" strokeWidth={1.75} />
-          <span className="sr-only">Volume</span>
-          <input type="range" min={0} max={100} value={vol} onChange={(e) => setVol(Number(e.target.value))} className="range w-24" />
-          <span className="w-9 text-right font-mono text-xs text-graphite tabular">{vol}%</span>
-        </label>
-      </div>
-    </div>
-  );
-}
+import { Kicker, SectionHead } from "./ui";
 
 /* ---------- Use-case panel layout ---------- */
 
@@ -331,14 +175,26 @@ const TABS = [
     id: "music",
     label: "Music",
     render: () => (
-      <UseCase
-        title="Mostly J-pop and EDM."
-        prompt={`last.fm now --user ${MUSIC.handle}`}
-        checks={[ABOUT.interests[2].desc, "Scrobbled on Last.fm."]}
-        get="Scrobbles, top artists, the lot."
-        link={{ href: MUSIC.url, label: `${MUSIC.handle} on Last.fm` }}
-        aside={<Radio />}
-      />
+      <div className="flex flex-col gap-12">
+        <section aria-label="My YouTube Music playlists">
+          <Kicker className="text-ink-soft">My YouTube Music playlists</Kicker>
+          <div className="mt-4">
+            <PlaylistShelf />
+          </div>
+        </section>
+        <UseCase
+          title="Mostly J-pop and EDM."
+          prompt={`last.fm now --user ${MUSIC.handle}`}
+          checks={[
+            ABOUT.interests[2].desc,
+            "Five playlists: Japanese, English, Hindi, Phonk and a mix.",
+            "Scrobbled on Last.fm.",
+          ]}
+          get="Scrobbles, top artists, the lot."
+          link={{ href: MUSIC.url, label: `${MUSIC.handle} on Last.fm` }}
+          aside={<TrackPlayer />}
+        />
+      </div>
     ),
   },
   {
