@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import { ArrowUpRight, Check } from "lucide-react";
 import { cn } from "../utils/cn";
 import { ABOUT, ANIME, MUSIC } from "../lib/data";
-import { PlaylistShelf, TrackPlayer } from "./Music";
+import { PlaylistShelf } from "./Music";
 import { Play } from "./Play";
 import { Reveal } from "./Reveal";
 import { Kicker, SectionHead } from "./ui";
@@ -188,11 +188,11 @@ const TABS = [
           checks={[
             ABOUT.interests[2].desc,
             "Five playlists: Japanese, English, Hindi, Phonk and a mix.",
+            "Three tracks on rotation live in the header player.",
             "Scrobbled on Last.fm.",
           ]}
           get="Scrobbles, top artists, the lot."
           link={{ href: MUSIC.url, label: `${MUSIC.handle} on Last.fm` }}
-          aside={<TrackPlayer />}
         />
       </div>
     ),

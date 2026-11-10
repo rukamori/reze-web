@@ -5,9 +5,11 @@ import { Now } from "./components/Now";
 import { Ask } from "./components/Ask";
 import { Links } from "./components/Links";
 import { Footer } from "./components/Footer";
+import { MusicProvider } from "./components/MusicPlayer";
 
 export default function App() {
   return (
+    <MusicProvider>
     <div className="min-h-screen overflow-x-clip bg-paper text-ink">
       <a href="#main" className="skip-link">
         Skip to content
@@ -22,5 +24,6 @@ export default function App() {
       </main>
       <Footer />
     </div>
+    </MusicProvider>
   );
 }

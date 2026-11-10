@@ -5,6 +5,7 @@ import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
 import { Wordmark } from "./Wordmark";
 import { buttonClass } from "./ui";
+import { HeaderPlayer } from "./MusicPlayer";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -149,14 +150,23 @@ export function Nav() {
           ))}
         </ul>
 
-        <div className="hidden items-center gap-6 lg:flex">
-          <span className="hidden font-mono text-xs text-[var(--text-3)] tabular xl:inline">IST {clock}</span>
+        <div className="hidden items-center gap-5 lg:flex">
+          <HeaderPlayer />
+          <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
           <a href="#ask" className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
             Ask me
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
         </div>
 
+        <div className="ml-auto flex items-center gap-3 lg:hidden">
+          <span className="hidden sm:block">
+            <HeaderPlayer />
+          </span>
+          <span className="sm:hidden">
+            <HeaderPlayer compact />
+          </span>
+        </div>
         <button
           ref={menuBtn}
           type="button"
