@@ -5,6 +5,7 @@ import { ABOUT, ANIME, MUSIC } from "../lib/data";
 import { PlaylistShelf } from "./Music";
 import { Play } from "./Play";
 import { Reveal } from "./Reveal";
+import { Halftone } from "./AnimeFx";
 import { Kicker, SectionHead } from "./ui";
 
 /* ---------- Use-case panel layout ---------- */
@@ -250,6 +251,7 @@ export function Now() {
 
   return (
     <section id="about" aria-labelledby="now-title" className="page relative py-24 lg:py-32">
+      <Halftone className="top-16 right-0 left-0 h-44" />
       <span id="play" aria-hidden className="absolute top-0" />
       <SectionHead
         num="02"

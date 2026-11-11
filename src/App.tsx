@@ -6,6 +6,7 @@ import { Ask } from "./components/Ask";
 import { Links } from "./components/Links";
 import { Footer } from "./components/Footer";
 import { MusicProvider } from "./components/MusicPlayer";
+import { KanaMarquee } from "./components/AnimeFx";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
         <Work />
+        <KanaMarquee />
         <Now />
         <Ask />
         <Links />

@@ -1,6 +1,7 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
+import { useRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../utils/cn";
 import { Reveal } from "./Reveal";
+import { useScrollVar } from "../hooks/useScrollVar";
 
 /* ---------- Mono label (12px, functional text) ---------- */
 
@@ -16,9 +17,12 @@ export function Kicker({ children, className }: { children: ReactNode; className
 
 /** "§ 0N ── LABEL" — every section opens with this row. */
 export function SectionMark({ num, label, className }: { num: string; label: string; className?: string }) {
+  // § numerals drift a few px with scroll (shared scroll clock)
+  const ref = useRef<HTMLSpanElement>(null);
+  useScrollVar(ref);
   return (
     <p className={cn("flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]", className)}>
-      <span className="text-[var(--accent-text)]">§ {num}</span>
+      <span ref={ref} className="sec-num inline-block whitespace-nowrap text-[var(--accent-text)]">§ {num}</span>
       <span aria-hidden className="h-px w-8 bg-[var(--border-strong)]" />
       <span className="text-[var(--text-3)]">{label}</span>
     </p>

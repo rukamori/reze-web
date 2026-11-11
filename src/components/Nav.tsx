@@ -174,7 +174,7 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="nav-menu-btn flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] lg:hidden"
+          className="nav-menu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] lg:hidden"
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
         </button>

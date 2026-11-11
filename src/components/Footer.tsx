@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
 import { Wordmark } from "./Wordmark";
 import { Kicker, StatusDot } from "./ui";
+import { useScrollVar } from "../hooks/useScrollVar";
 
 /** Decorative signature, one span per letter for the hover play (aria-hidden). */
 const SIGNATURE = Array.from("v3rsi0n.");
@@ -14,10 +16,64 @@ const ELSEWHERE = [
   { name: "AniList", url: "https://anilist.co/user/zensxin/" },
 ];
 
+/** Closing key visual (user-supplied), resized to webp in public/art. */
+const BAND = {
+  src1280: "art/footer-band-1280.webp",
+  src1920: "art/footer-band-1920.webp",
+  width: 1280,
+  height: 720,
+  alt: "Anime key visual: four bandmates carrying guitar cases across a sunlit crosswalk",
+};
+
+function ArtBand() {
+  const ref = useRef<HTMLElement>(null);
+  useScrollVar(ref);
+  return (
+    <figure ref={ref} className="art-band relative m-0 overflow-hidden border-b border-ink bg-paper-deep">
+      <picture>
+        <source type="image/webp" srcSet={`${BAND.src1280} 1280w, ${BAND.src1920} 1920w`} sizes="100vw" />
+        <img
+          src={BAND.src1280}
+          width={BAND.width}
+          height={BAND.height}
+          alt={BAND.alt}
+          loading="lazy"
+          decoding="async"
+          className="block aspect-video max-h-[70vh] min-h-[320px] w-full object-cover object-[right_bottom] sm:object-center"
+        />
+      </picture>
+      <figcaption className="relative p-4 sm:absolute sm:p-0 sm:top-1/2 sm:left-[max(var(--gutter),calc((100vw-var(--page-max))/2+var(--gutter)))] sm:max-w-[380px] sm:-translate-y-1/2">
+        <div className="rounded-[var(--radius-xs)] border border-ink bg-paper p-5 shadow-[6px_6px_0_var(--color-ink)]">
+          <p className="kicker text-ink-soft">End of transmission</p>
+          <p className="mt-2 font-display text-title text-ink sm:text-[30px] sm:leading-[1.1]">Thanks for scrolling. Go flash something.</p>
+          <div className="mt-4 flex flex-wrap gap-x-5">
+            {[
+              { name: "Telegram", url: "https://t.me/v3rsi0n" },
+              { name: "GitHub", url: "https://github.com/4nx3b" },
+            ].map((l) => (
+              <a
+                key={l.name}
+                href={l.url}
+                target="_blank"
+                rel="noreferrer"
+                className="group inline-flex min-h-11 items-center gap-1.5 text-md font-medium text-ink underline decoration-rule-strong underline-offset-4 hover:decoration-ink"
+              >
+                {l.name}
+                <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+              </a>
+            ))}
+          </div>
+        </div>
+      </figcaption>
+    </figure>
+  );
+}
+
 export function Footer() {
   const clock = useIstClock();
   return (
     <footer className="relative overflow-hidden border-t border-ink bg-paper">
+      <ArtBand />
       <div className="page relative pt-16">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
