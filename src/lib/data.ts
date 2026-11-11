@@ -206,13 +206,13 @@ export const AMA_KEYS = {
 
 /* ---------- Music: full songs via YouTube's official embed ---------- */
 
-export type Track = { id: string; title: string; artist: string; youtubeId: string };
+export type Track = { id: string; title: string; artist: string; scId: number; permalink: string; artwork: string };
 
-/** Played through YouTube's IFrame player; swap a youtubeId here if an upload disappears. */
+/** Full tracks, audio only, through SoundCloud's official widget. Swap a track here if an upload disappears. */
 export const TRACKS: Track[] = [
-  { id: "abgrund", title: "Abgrund", artist: "Elous\u2227.FZ", youtubeId: "CcI0JfgKWig" },
-  { id: "journey", title: "Journey To The Rainbows", artist: "Ardolf", youtubeId: "T3Mj0St285A" },
-  { id: "orthodox", title: "Orthodox", artist: "tokiwa", youtubeId: "1yt3p-YGhLk" },
+  { id: "abgrund", title: "Abgrund", artist: "Elous\u2227.FZ", scId: 1507694857, permalink: "https://soundcloud.com/293857298/elousfz-abgrund", artwork: "https://i1.sndcdn.com/artworks-44KBwQeyzBfIJFun-LorbIw-t500x500.jpg" },
+  { id: "journey", title: "Journey To The Rainbows", artist: "Ardolf", scId: 960372361, permalink: "https://soundcloud.com/ardolf_music/ardolf-journey-to-the-rainbows", artwork: "https://i1.sndcdn.com/artworks-cHEPOvbYHniCyvOj-xJaHUw-t500x500.jpg" },
+  { id: "orthodox", title: "Orthodox", artist: "tokiwa", scId: 347903683, permalink: "https://soundcloud.com/tokiwa_anka/tokiwa-orthodox", artwork: "https://i1.sndcdn.com/artworks-000651636742-791u96-t500x500.jpg" },
 ];
 
 export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;

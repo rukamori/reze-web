@@ -744,11 +744,16 @@ html.js .spine[data-armed][data-inview] {
   color: var(--color-panel-err);
 }
 .hp-compact {
-  height: 44px;
+  height: 48px;
   box-shadow: 3px 3px 0 var(--text);
 }
 .hp-compact .hp-play {
   width: 44px;
+}
+@media (max-width: 359px) {
+  .hp-compact .hp-mid {
+    display: none;
+  }
 }
 @keyframes disc-spin {
   to {
@@ -801,6 +806,35 @@ html.js .spine[data-armed][data-inview] {
   width: 240px;
   animation: pop-in var(--dur-3) var(--ease-out) both;
 }
+/* SoundCloud widget: parked off-screen (not display:none, so it initialises).
+   Shown as a bottom bar only when a browser blocks cross-frame audio. */
+.sc-frame {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+}
+.sc-frame-visible {
+  left: 16px;
+  right: 16px;
+  top: auto;
+  bottom: 16px;
+  width: auto;
+  max-width: 520px;
+  height: 120px;
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 90;
+  border: 1px solid var(--color-ink);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 var(--color-ink);
+  background: var(--color-paper);
+}
+
 .sp-btn {
   display: flex;
   height: 44px;
@@ -917,6 +951,238 @@ html.js .spine[data-armed][data-inview] {
   .pl-tilt {
     transform: none !important;
     opacity: 1 !important;
+  }
+}
+
+/* ══════════════ hero key visual (miuka.moe-style composition) ══════════════ */
+.hero-name {
+  transform: translate3d(0, calc(var(--p, 0) * 24px), 0);
+}
+.hero-wordmark {
+  font-size: clamp(72px, 14vw, 220px);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.hero-portrait-wrap {
+  transform: translate3d(0, calc(var(--p, 0) * -40px), 0);
+}
+@keyframes portrait-settle {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) rotate(-4deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1.5deg);
+  }
+}
+.hero-portrait {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-ink);
+  border-radius: 4px;
+  box-shadow: 14px 14px 0 var(--color-vermilion);
+  transform: rotate(-1.5deg);
+  animation: portrait-settle var(--dur-hero) var(--ease-out) 0.15s both;
+}
+.hero-portrait img {
+  max-height: 78vh;
+}
+@keyframes sticker-pop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) rotate(var(--r, 0deg)) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--r, 0deg));
+  }
+}
+.hero-sticker {
+  position: absolute;
+  z-index: 2;
+  padding: 8px 12px;
+  border: 1px solid var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  transform: rotate(var(--r, 0deg));
+  animation: sticker-pop var(--dur-enter) var(--ease-out) both;
+  animation-delay: calc(0.55s + var(--i, 0) * var(--stagger));
+}
+.hero-sticker-a {
+  --r: 4deg;
+  top: 18px;
+  right: -14px;
+  background: var(--color-vermilion-wash);
+  color: var(--color-ink);
+}
+.hero-sticker-b {
+  --r: -3deg;
+  bottom: 22px;
+  left: -14px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+@media (max-width: 639px) {
+  .hero-sticker-a {
+    right: -6px;
+  }
+  .hero-sticker-b {
+    left: -6px;
+  }
+}
+
+/* ══════════════ anime FX (original, abstract) ══════════════ */
+/* Sakura: CSS ambient fall on the svg, scroll rush on the wrapper */
+.petal-rush {
+  position: absolute;
+  transform: translate3d(0, calc(var(--p, 0) * -120px * var(--depth, 1)), 0);
+}
+@keyframes petal-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate3d(var(--sway, 30px), 48vh, 0) rotate(160deg);
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--sway, 30px) * -0.4), 96vh, 0) rotate(320deg);
+  }
+}
+.petal {
+  display: block;
+  animation: petal-fall var(--dur, 18s) linear var(--delay, 0s) infinite;
+}
+.sakura[data-off] .petal {
+  animation-play-state: paused;
+}
+@media (max-width: 639px) {
+  .sakura .petal-rush:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+/* Speed lines flare only while scrolling fast */
+.speed-lines {
+  inset: -18% -30%;
+  z-index: -1;
+  width: 160%;
+  height: 136%;
+  opacity: calc(var(--sv, 0) * 0.5);
+}
+
+/* Halftone dot band */
+.halftone {
+  background-image: radial-gradient(var(--color-ink) 1.1px, transparent 1.6px);
+  background-size: 10px 10px;
+  background-position: calc(var(--p, 0) * 60px) 0;
+  opacity: 0.12;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+}
+
+/* Kana banner */
+.kana-band {
+  padding-block: 18px;
+}
+.kana-scroll {
+  transform: translate3d(calc(var(--p, 0) * -30%), 0, 0);
+}
+@keyframes kana-drift {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.kana-track {
+  display: flex;
+  width: max-content;
+  animation: kana-drift 40s linear infinite;
+}
+.kana-band:hover .kana-track,
+.kana-band:focus-within .kana-track,
+.kana-band[data-paused] .kana-track {
+  animation-play-state: paused;
+}
+.kana-band[data-paused] .kana-scroll {
+  transform: none;
+}
+.kana-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding-right: 28px;
+  font-family: var(--font-sans), sans-serif; /* Japanese glyphs fall back to the system CJK face */
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.kana-star {
+  color: var(--color-vermilion);
+  font-size: 20px;
+}
+
+/* § numerals drift with scroll */
+.sec-num {
+  transform: translate3d(0, calc(var(--p, 0) * 12px), 0);
+}
+
+/* Circular badge */
+.spin-badge {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  color: var(--text);
+}
+.spin-badge-ring {
+  transform: rotate(calc(var(--p, 0) * 180deg));
+}
+
+/* ══════════════ closing art band ══════════════ */
+.art-band img {
+  transform: translate3d(0, calc(var(--p, 0) * -30px), 0) scale(calc(1.08 - var(--p, 0) * 0.08));
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-name,
+  .hero-portrait-wrap,
+  .petal-rush,
+  .kana-scroll,
+  .spin-badge-ring,
+  .sec-num,
+  .art-band img {
+    transform: none !important;
+  }
+  .hero-portrait {
+    transform: rotate(-1.5deg) !important;
+  }
+  .hero-sticker {
+    transform: rotate(var(--r, 0deg)) !important;
+  }
+  .petal,
+  .kana-track {
+    animation: none !important;
+  }
+  .petal {
+    opacity: 0.8;
+  }
+  .speed-lines {
+    display: none !important;
   }
 }
 

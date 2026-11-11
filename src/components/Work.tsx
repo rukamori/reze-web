@@ -4,6 +4,7 @@ import { cn } from "../utils/cn";
 import { APP, ROM_POST } from "../lib/data";
 import { ago, useGithubRepo } from "../hooks/useGithubRepo";
 import { Reveal } from "./Reveal";
+import { SpinBadge } from "./AnimeFx";
 import { Button, Kicker, SectionHead } from "./ui";
 
 /* ---------------- ROM post ---------------- */
@@ -50,7 +51,7 @@ function RomPost() {
                 href={p.maintainerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-panel-text underline decoration-panel-rule underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-panel-text"
+                className="-my-3 inline-flex min-h-11 items-center text-panel-text underline decoration-panel-rule underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-panel-text"
               >
                 {p.maintainer}
               </a>
@@ -225,7 +226,8 @@ function AppCard() {
 export function Work() {
   return (
     <section id="work" aria-labelledby="work-title" className="panel-scope">
-      <div className="page py-24 lg:py-32">
+      <div className="page relative py-24 lg:py-32">
+        <SpinBadge className="top-20 right-[var(--gutter)] hidden md:block lg:top-24" />
         <SectionHead
           num="01"
           label="Work"
