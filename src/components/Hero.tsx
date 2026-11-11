@@ -73,7 +73,7 @@ export function Hero() {
         <div className="page relative grid grid-cols-1 gap-x-6 pt-10 pb-16 lg:grid-cols-12 lg:pt-12 lg:pb-24">
           {/* Name block: sits behind the portrait */}
           <div ref={nameRef} className="hero-name relative z-0 lg:col-span-8 lg:col-start-1 lg:row-start-1">
-            <div className="m-rise flex flex-wrap items-center gap-x-5 gap-y-3" style={{ ["--rise-y" as string]: "10px" }}>
+            <div className="m-rise flex flex-wrap items-center gap-x-5 gap-y-3 lg:max-w-[52%]" style={{ ["--rise-y" as string]: "10px" }}>
               <p className="flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]">
                 <span className="shrink-0 whitespace-nowrap text-vermilion-ink">§ 00</span>
                 <span aria-hidden className="h-px w-8 bg-rule-strong" />

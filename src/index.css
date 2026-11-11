@@ -791,81 +791,12 @@ html.js .spine[data-armed][data-inview] {
 .song-panel[hidden] {
   display: none;
 }
-.song-panel[data-mode="open"] {
+.song-panel {
   top: 72px;
   right: var(--gutter);
-  width: min(380px, calc(100vw - 2 * var(--gutter)));
-  max-height: calc(100dvh - 88px);
-  overflow-y: auto;
+  width: min(300px, calc(100vw - 2 * var(--gutter)));
   transform-origin: top right;
   animation: pop-in var(--dur-3) var(--ease-out) both;
-}
-.song-panel[data-mode="mini"] {
-  right: 16px;
-  bottom: 16px;
-  width: 240px;
-  animation: pop-in var(--dur-3) var(--ease-out) both;
-}
-/* SoundCloud widget: parked off-screen (not display:none, so it initialises).
-   Shown as a bottom bar only when a browser blocks cross-frame audio. */
-.sc-frame {
-  position: fixed;
-  left: -9999px;
-  top: 0;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-  border: 0;
-}
-.sc-frame-visible {
-  left: 16px;
-  right: 16px;
-  top: auto;
-  bottom: 16px;
-  width: auto;
-  max-width: 520px;
-  height: 120px;
-  opacity: 1;
-  pointer-events: auto;
-  z-index: 90;
-  border: 1px solid var(--color-ink);
-  border-radius: 6px;
-  box-shadow: 6px 6px 0 var(--color-ink);
-  background: var(--color-paper);
-}
-
-.sp-btn {
-  display: flex;
-  height: 44px;
-  width: 44px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  border: 1px solid #f3efe659;
-  color: var(--color-panel-text);
-  transition: border-color var(--dur-2) var(--ease-out);
-}
-.sp-btn:hover {
-  border-color: var(--color-panel-text);
-}
-.song-panel :focus-visible {
-  outline-color: var(--color-paper);
-}
-.range-dark::-webkit-slider-runnable-track {
-  background: #f3efe659;
-}
-.range-dark::-moz-range-track {
-  background: #f3efe659;
-}
-.range-dark::-webkit-slider-thumb {
-  background: var(--color-paper);
-  border-color: var(--color-panel);
-  box-shadow: 0 0 0 1px var(--color-paper);
-}
-.range-dark::-moz-range-thumb {
-  background: var(--color-paper);
-  border-color: var(--color-panel);
 }
 @keyframes bars {
   0%,
@@ -885,7 +816,7 @@ html.js .spine[data-armed][data-inview] {
   .sp-bars {
     animation: none !important;
   }
-  .song-panel[data-mode] {
+  .song-panel {
     animation: fade-only var(--dur-2) linear both !important;
   }
 }
@@ -895,68 +826,79 @@ html.js .spine[data-armed][data-inview] {
   }
 }
 
-/* Playlist shelf: swipeable coverflow. JS writes --ry/--tz/--s/--o per card,
-   --hx/--hy add the desktop hover tilt. Borderless covers. */
-.pl-wrap {
-  margin-inline: calc(-1 * var(--gutter));
+/* Game dialog: a light paper tint, never a dark scrim */
+.game-scrim {
+  background: color-mix(in srgb, var(--color-paper) 55%, transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
-.pl-track {
+
+/* Playlist deck: five real covers stacked; the top one follows the finger.
+   Transforms only, so the drag stays on the compositor. */
+.pl-deck-wrap {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 20px;
-  overflow-x: auto;
-  overflow-y: visible;
-  scroll-snap-type: x mandatory;
-  padding: 28px calc(50% - 110px) 20px;
+}
+.pl-deck {
+  position: relative;
+  width: 260px;
+  height: 260px;
   perspective: 1000px;
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
+  touch-action: pan-y;
   cursor: grab;
-  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
 }
-.pl-track::-webkit-scrollbar {
-  display: none;
-}
-.pl-track[data-dragging] {
+.pl-deck[data-dragging] {
   cursor: grabbing;
   user-select: none;
 }
-.pl-card {
-  flex: 0 0 220px;
-  scroll-snap-align: center;
-}
-@media (max-width: 639px) {
-  .pl-card {
-    flex-basis: 180px;
-  }
-  .pl-track {
-    padding-inline: calc(50% - 90px);
+@media (min-width: 640px) {
+  .pl-deck {
+    width: 300px;
+    height: 300px;
   }
 }
-.pl-tilt {
+.pl-stack-card {
+  position: absolute;
+  inset: 0;
   transform-style: preserve-3d;
-  transform: rotateY(calc(var(--ry, 0deg) + var(--hx, 0deg))) rotateX(var(--hy, 0deg)) translateZ(var(--tz, 0px))
-    scale(var(--s, 1));
-  opacity: var(--o, 1);
+  transform: translate3d(calc(var(--d) * 14px), calc(var(--d) * -10px), calc(var(--d) * -40px))
+    rotate(calc(var(--d) * 3deg)) scale(calc(1 - var(--d) * 0.05));
+  opacity: calc(1 - var(--d) * 0.12);
   transition:
-    transform 0.5s var(--ease-out),
-    opacity 0.5s var(--ease-out);
+    transform 0.45s var(--ease-out),
+    opacity 0.45s var(--ease-out);
+  will-change: transform;
 }
-.pl-track[data-moving] .pl-tilt {
-  transition: none;
+.pl-stack-card[data-top="true"] {
+  transform: none;
+  opacity: 1;
 }
-.pl-tilt:focus-visible {
+.pl-cover {
+  box-shadow: 0 18px 40px -22px #14130f80;
+  -webkit-user-drag: none;
+}
+.pl-meta {
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+}
+.pl-deck:focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 6px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .pl-tilt {
-    transform: none !important;
-    opacity: 1 !important;
+  .pl-stack-card {
+    transition: opacity var(--dur-2) linear;
   }
 }
 
 /* ══════════════ hero key visual (miuka.moe-style composition) ══════════════ */
 .hero-name {
   transform: translate3d(0, calc(var(--p, 0) * 24px), 0);
+  will-change: transform;
 }
 .hero-wordmark {
   font-size: clamp(72px, 14vw, 220px);
@@ -966,6 +908,7 @@ html.js .spine[data-armed][data-inview] {
 }
 .hero-portrait-wrap {
   transform: translate3d(0, calc(var(--p, 0) * -40px), 0);
+  will-change: transform;
 }
 @keyframes portrait-settle {
   from {
@@ -1087,12 +1030,20 @@ html.js .spine[data-armed][data-inview] {
 
 /* Halftone dot band */
 .halftone {
-  background-image: radial-gradient(var(--color-ink) 1.1px, transparent 1.6px);
-  background-size: 10px 10px;
-  background-position: calc(var(--p, 0) * 60px) 0;
+  overflow: clip;
   opacity: 0.12;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  contain: layout paint;
+}
+.halftone::before {
+  content: "";
+  position: absolute;
+  inset: 0 -80px;
+  background-image: radial-gradient(var(--color-ink) 1.1px, transparent 1.6px);
+  background-size: 10px 10px;
+  transform: translate3d(calc(var(--p, 0) * 60px), 0, 0);
+  will-change: transform;
 }
 
 /* Kana banner */
@@ -1101,6 +1052,7 @@ html.js .spine[data-armed][data-inview] {
 }
 .kana-scroll {
   transform: translate3d(calc(var(--p, 0) * -30%), 0, 0);
+  will-change: transform;
 }
 @keyframes kana-drift {
   to {
@@ -1114,11 +1066,8 @@ html.js .spine[data-armed][data-inview] {
 }
 .kana-band:hover .kana-track,
 .kana-band:focus-within .kana-track,
-.kana-band[data-paused] .kana-track {
+.kana-band[data-off] .kana-track {
   animation-play-state: paused;
-}
-.kana-band[data-paused] .kana-scroll {
-  transform: none;
 }
 .kana-item {
   display: inline-flex;
@@ -1156,6 +1105,287 @@ html.js .spine[data-armed][data-inview] {
 .art-band img {
   transform: translate3d(0, calc(var(--p, 0) * -30px), 0) scale(calc(1.08 - var(--p, 0) * 0.08));
   transform-origin: center;
+  will-change: transform;
+}
+
+
+/* ══════════════ compositor-driven scroll motion ══════════════
+   Where the browser supports scroll-driven animations the motion runs off the
+   main thread and tracks scrolling 1:1 — no JS, no stutter. The --p rules above
+   stay as the fallback for browsers without animation-timeline. */
+@keyframes sd-drift-down {
+  from {
+    transform: translate3d(0, -24px, 0);
+  }
+  to {
+    transform: translate3d(0, 24px, 0);
+  }
+}
+@keyframes sd-drift-up {
+  from {
+    transform: translate3d(0, 40px, 0);
+  }
+  to {
+    transform: translate3d(0, -40px, 0);
+  }
+}
+@keyframes sd-num {
+  from {
+    transform: translate3d(0, -12px, 0);
+  }
+  to {
+    transform: translate3d(0, 12px, 0);
+  }
+}
+@keyframes sd-petal {
+  from {
+    transform: translate3d(0, calc(120px * var(--depth, 1)), 0);
+  }
+  to {
+    transform: translate3d(0, calc(-120px * var(--depth, 1)), 0);
+  }
+}
+@keyframes sd-kana {
+  from {
+    transform: translate3d(8%, 0, 0);
+  }
+  to {
+    transform: translate3d(-30%, 0, 0);
+  }
+}
+@keyframes sd-halftone {
+  from {
+    transform: translate3d(-60px, 0, 0);
+  }
+  to {
+    transform: translate3d(60px, 0, 0);
+  }
+}
+@keyframes sd-badge {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+@keyframes sd-kenburns {
+  from {
+    transform: translate3d(0, 30px, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(0, -30px, 0) scale(1);
+  }
+}
+@keyframes sd-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .hero-name,
+  .hero-portrait-wrap,
+  .petal-rush,
+  .kana-scroll,
+  .halftone::before,
+  .spin-badge-ring,
+  .sec-num,
+  .art-band img {
+    animation-timeline: view();
+    animation-range: cover;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-duration: auto;
+  }
+  .hero-name {
+    animation-name: sd-drift-down;
+  }
+  .hero-portrait-wrap {
+    animation-name: sd-drift-up;
+  }
+  .petal-rush {
+    animation-name: sd-petal;
+  }
+  .kana-scroll {
+    animation-name: sd-kana;
+  }
+  .halftone::before {
+    animation-name: sd-halftone;
+  }
+  .spin-badge-ring {
+    animation-name: sd-badge;
+  }
+  .sec-num {
+    animation-name: sd-num;
+  }
+  .art-band img {
+    animation-name: sd-kenburns;
+  }
+  /* header hairline follows the whole-page scroll */
+  .nav-progress {
+    transform: scaleX(0);
+    animation: sd-progress linear both;
+    animation-timeline: scroll(root);
+    animation-duration: auto;
+  }
+}
+
+/* ══════════════ motion vectors · giant type · orbit · bursts ══════════════ */
+.mv {
+  position: absolute;
+  width: 140px;
+  height: 110px;
+  color: var(--text);
+  opacity: 0.5;
+  pointer-events: none;
+  overflow: clip;
+}
+.mv[data-flip] {
+  transform: scaleX(-1);
+}
+.mv-line path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - (1 - abs(var(--p, 1))));
+}
+.giant-type {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+  overflow: clip;
+  z-index: 0;
+  opacity: 0.45;
+}
+.giant-type-row {
+  display: block;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 40vw;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--border-strong);
+  transform: translate3d(calc(8% + var(--p, 0) * -16%), 0, 0);
+  will-change: transform;
+}
+@media (min-width: 768px) {
+  .giant-type-row {
+    font-size: 28vw;
+  }
+}
+.giant-type[data-reverse] .giant-type-row {
+  transform: translate3d(calc(-30% + var(--p, 0) * 16%), 0, 0);
+}
+.orbit {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  color: var(--border-strong);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+@media (max-width: 767px) {
+  .orbit {
+    width: 312px;
+    height: 312px;
+  }
+}
+.orbit-ring {
+  transform: rotate(calc(var(--p, 0) * 120deg)) scale(calc(0.95 + var(--p, 0) * 0.05));
+  will-change: transform;
+}
+.burst {
+  position: absolute;
+  inset-inline: 0;
+  height: 40px;
+  color: var(--text);
+  opacity: 0.3;
+  pointer-events: none;
+  overflow: clip;
+}
+.burst-inner {
+  transform-origin: left center;
+  transform: scaleX(calc(0.25 + (1 - abs(var(--p, 0))) * 0.75));
+  will-change: transform;
+}
+
+@keyframes sd-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sd-giant {
+  from {
+    transform: translate3d(10%, 0, 0);
+  }
+  to {
+    transform: translate3d(-25%, 0, 0);
+  }
+}
+@keyframes sd-giant-rev {
+  from {
+    transform: translate3d(-30%, 0, 0);
+  }
+  to {
+    transform: translate3d(5%, 0, 0);
+  }
+}
+@keyframes sd-orbit {
+  from {
+    transform: rotate(0deg) scale(0.9);
+  }
+  to {
+    transform: rotate(240deg) scale(1.05);
+  }
+}
+@keyframes sd-burst {
+  from {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0.35);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .mv-line path {
+    stroke-dashoffset: 1;
+    animation: sd-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 45%;
+    animation-duration: auto;
+  }
+  .giant-type-row,
+  .orbit-ring,
+  .burst-inner {
+    animation-timeline: view();
+    animation-range: cover;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-duration: auto;
+  }
+  .giant-type-row {
+    animation-name: sd-giant;
+  }
+  .giant-type[data-reverse] .giant-type-row {
+    animation-name: sd-giant-rev;
+  }
+  .orbit-ring {
+    animation-name: sd-orbit;
+  }
+  .burst-inner {
+    animation-name: sd-burst;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1165,8 +1395,21 @@ html.js .spine[data-armed][data-inview] {
   .kana-scroll,
   .spin-badge-ring,
   .sec-num,
-  .art-band img {
+  .art-band img,
+  .halftone::before,
+  .giant-type-row,
+  .orbit-ring,
+  .burst-inner {
     transform: none !important;
+    animation: none !important;
+    will-change: auto !important;
+  }
+  .mv-line path {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+  .nav-progress {
+    animation: none !important;
   }
   .hero-portrait {
     transform: rotate(-1.5deg) !important;
@@ -1184,6 +1427,15 @@ html.js .spine[data-armed][data-inview] {
   .speed-lines {
     display: none !important;
   }
+}
+
+/* Below-the-fold sections: let the browser skip their layout/paint until near.
+   Skipped for #about, whose Skills-style sticky column must keep measuring. */
+#ask,
+#links,
+.art-band {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
 }
 
 /* Scroll reveal — content stays visible without JS */
