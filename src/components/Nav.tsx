@@ -3,6 +3,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../utils/cn";
 import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
+import { supportsViewTimeline } from "../hooks/useScrollVar";
 import { Wordmark } from "./Wordmark";
 import { buttonClass } from "./ui";
 import { HeaderPlayer } from "./MusicPlayer";
@@ -14,9 +15,11 @@ export function Nav() {
   const menuBtn = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  // One rAF-coalesced listener: frost state with hysteresis (no flapping near the
-  // threshold) and the --sp page progress for the hairline. setState only on change.
+  // Frost state with hysteresis, rAF-coalesced; setState only on change.
+  // --sp is only written when CSS scroll timelines are missing, because a
+  // per-frame custom property on <html> restyles the whole document.
   useEffect(() => {
+    const needsVar = !supportsViewTimeline();
     let raf = 0;
     let on = false;
     const root = document.documentElement;
@@ -28,8 +31,10 @@ export function Nav() {
         on = next;
         setScrolled(next);
       }
-      const max = Math.max(1, root.scrollHeight - window.innerHeight);
-      root.style.setProperty("--sp", Math.min(1, y / max).toFixed(4));
+      if (needsVar) {
+        const max = Math.max(1, root.scrollHeight - window.innerHeight);
+        root.style.setProperty("--sp", Math.min(1, y / max).toFixed(4));
+      }
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(apply);

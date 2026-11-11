@@ -4,7 +4,7 @@ import { cn } from "../utils/cn";
 import { APP, ROM_POST } from "../lib/data";
 import { ago, useGithubRepo } from "../hooks/useGithubRepo";
 import { Reveal } from "./Reveal";
-import { SpinBadge } from "./AnimeFx";
+import { BurstLines, GiantType, MotionVectors, SpinBadge } from "./AnimeFx";
 import { Button, Kicker, SectionHead } from "./ui";
 
 /* ---------------- ROM post ---------------- */
@@ -225,9 +225,12 @@ function AppCard() {
 
 export function Work() {
   return (
-    <section id="work" aria-labelledby="work-title" className="panel-scope">
+    <section id="work" aria-labelledby="work-title" className="panel-scope relative overflow-clip">
+      <GiantType className="top-10 lg:top-20" />
+      <BurstLines className="top-0" />
       <div className="page relative py-24 lg:py-32">
         <SpinBadge className="top-20 right-[var(--gutter)] hidden md:block lg:top-24" />
+        <MotionVectors className="top-28 right-[var(--gutter)] hidden lg:block" count={5} />
         <SectionHead
           num="01"
           label="Work"

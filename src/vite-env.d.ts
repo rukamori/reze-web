@@ -6,3 +6,7 @@ interface Window {
   onYouTubeIframeAPIReady?: () => void;
   SC?: any;
 }
+
+interface Window {
+  MediaMetadata: typeof MediaMetadata;
+}

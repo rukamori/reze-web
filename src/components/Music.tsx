@@ -1,12 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "../utils/cn";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PLAYLISTS, type Playlist } from "../lib/data";
 
 /* ---------------- Playlist shelf ---------------- */
 
 const CACHE_KEY = "yt_playlists_v1";
-const REFRESH_MS = 5 * 60_000;
 
 function readCache(): Playlist[] {
   try {
@@ -19,31 +16,34 @@ function readCache(): Playlist[] {
   }
 }
 
-/** Five YouTube Music playlists; title, cover and count refresh from /api/yt-playlists. */
+/** Five YouTube Music playlists as a swipeable stack of real covers. */
 export function PlaylistShelf() {
   const [lists, setLists] = useState<Playlist[]>(readCache);
+  const [order, setOrder] = useState<number[]>(() => PLAYLISTS.map((_, i) => i));
+  const [live, setLive] = useState(false);
+  const deckRef = useRef<HTMLDivElement>(null);
+  const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
+  /** Refresh title, cover and count on every page load (covers are signed URLs). */
   useEffect(() => {
-    let timer = 0;
     let alive = true;
-    const pull = async () => {
-      if (document.visibilityState !== "visible") return;
+    (async () => {
       try {
-        const res = await fetch("/api/yt-playlists", { headers: { Accept: "application/json" } });
-        const type = res.headers.get("content-type") || "";
-        if (!res.ok || !type.includes("json")) return; // preview has no /api: stay quiet
+        const res = await fetch(`/api/yt-playlists?t=${Date.now()}`, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!res.ok || !(res.headers.get("content-type") || "").includes("json")) return;
         const data = await res.json();
         if (!alive || !Array.isArray(data?.playlists)) return;
         setLists((prev) => {
           const next = prev.map((p) => {
-            const live = data.playlists.find((x: Partial<Playlist>) => x.id === p.id);
-            if (!live) return p;
-            return {
-              ...p,
-              title: live.title || p.title,
-              thumbnail: live.thumbnail || p.thumbnail,
-              itemCount: typeof live.itemCount === "number" ? live.itemCount : p.itemCount,
-            };
+            const l = data.playlists.find((x: Partial<Playlist>) => x.id === p.id);
+            return l
+              ? {
+                  ...p,
+                  title: l.title || p.title,
+                  thumbnail: l.thumbnail || p.thumbnail,
+                  itemCount: typeof l.itemCount === "number" ? l.itemCount : p.itemCount,
+                }
+              : p;
           });
           try {
             localStorage.setItem(CACHE_KEY, JSON.stringify(next));
@@ -52,250 +52,175 @@ export function PlaylistShelf() {
           }
           return next;
         });
+        setLive(true);
       } catch {
-        /* offline: keep what we have */
+        /* keep the cache */
       }
-    };
-    void pull();
-    timer = window.setInterval(pull, REFRESH_MS);
-    document.addEventListener("visibilitychange", pull);
+    })();
     return () => {
       alive = false;
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", pull);
     };
   }, []);
 
-  const trackRef = useRef<HTMLUListElement>(null);
-  const [active, setActive] = useState(0);
-  const dragged = useRef(false);
-
-  // Coverflow: one rAF writes --ry/--tz/--s/--o per card from its distance to centre.
-  // Only CSS vars are written; layout and scroll position are left to the browser.
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0;
-    let settle = 0;
-    let lastActive = -1;
-    const apply = () => {
-      raf = 0;
-      const tr = track.getBoundingClientRect();
-      const mid = tr.left + tr.width / 2;
-      let best = 0;
-      let bestD = Infinity;
-      const cards = track.querySelectorAll<HTMLElement>(".pl-card");
-      cards.forEach((card, i) => {
-        const r = card.getBoundingClientRect();
-        const step = r.width + 20;
-        const d = Math.max(-2, Math.min(2, (r.left + r.width / 2 - mid) / step));
-        if (Math.abs(d) < bestD) {
-          bestD = Math.abs(d);
-          best = i;
-        }
-        if (reduced) return;
-        const tilt = card.firstElementChild as HTMLElement | null;
-        if (!tilt) return;
-        const a = Math.abs(d);
-        tilt.style.setProperty("--ry", `${(Math.max(-1, Math.min(1, d)) * -32).toFixed(2)}deg`);
-        tilt.style.setProperty("--tz", `${(-a * 60).toFixed(1)}px`);
-        tilt.style.setProperty("--s", (1 - Math.min(a, 1) * 0.12).toFixed(3));
-        tilt.style.setProperty("--o", (1 - Math.min(a, 2) * 0.25).toFixed(3));
-      });
-      if (best !== lastActive) {
-        lastActive = best;
-        setActive(best);
-      }
-    };
-    const onScroll = () => {
-      track.setAttribute("data-moving", "");
-      window.clearTimeout(settle);
-      settle = window.setTimeout(() => track.removeAttribute("data-moving"), 120);
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    const onResize = () => {
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    apply();
-    track.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      window.clearTimeout(settle);
-      track.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
+  /** Send the top card to the back (dir -1 brings the last one forward). */
+  const cycle = useCallback((dir: 1 | -1) => {
+    setOrder((o) => (dir === 1 ? [...o.slice(1), o[0]] : [o[o.length - 1], ...o.slice(0, -1)]));
   }, []);
 
-  // Mouse drag-to-scroll (touch keeps native scroll-snap)
+  /* Drag the top card 1:1, fly it out past the threshold, else spring back. */
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    let down = false;
+    const deck = deckRef.current;
+    if (!deck) return;
+    let card: HTMLElement | null = null;
+    let id = -1;
     let x0 = 0;
-    let left0 = 0;
-    const onDown = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse" || e.button !== 0) return;
-      down = true;
-      dragged.current = false;
+    let t0 = 0;
+    let dx = 0;
+    let dragging = false;
+
+    const topCard = () => deck.querySelector<HTMLElement>('[data-top="true"]');
+    const setT = (el: HTMLElement, v: string, trans = "none") => {
+      el.style.transition = trans;
+      el.style.transform = v;
+    };
+
+    const down = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      card = topCard();
+      if (!card) return;
+      id = e.pointerId;
       x0 = e.clientX;
-      left0 = track.scrollLeft;
-      track.style.scrollSnapType = "none";
+      t0 = performance.now();
+      dx = 0;
+      dragging = false;
+      card.setPointerCapture?.(id);
     };
-    const onMove = (e: PointerEvent) => {
-      if (!down) return;
-      const dx = e.clientX - x0;
-      if (!dragged.current && Math.abs(dx) > 6) {
-        dragged.current = true;
-        track.setPointerCapture(e.pointerId);
-        track.setAttribute("data-dragging", "");
+    const move = (e: PointerEvent) => {
+      if (!card || e.pointerId !== id) return;
+      dx = e.clientX - x0;
+      if (!dragging && Math.abs(dx) > 6) {
+        dragging = true;
+        deck.dataset.dragging = "true";
       }
-      if (dragged.current) track.scrollLeft = left0 - dx;
+      if (!dragging) return;
+      e.preventDefault();
+      setT(card, `translate3d(${dx}px,0,0) rotate(${(dx * 0.06).toFixed(2)}deg) rotateY(${(dx * -0.08).toFixed(2)}deg)`);
     };
-    const onUp = (e: PointerEvent) => {
-      if (!down) return;
-      down = false;
-      track.removeAttribute("data-dragging");
-      if (track.hasPointerCapture(e.pointerId)) track.releasePointerCapture(e.pointerId);
-      track.style.scrollSnapType = "";
-      // settle onto the nearest card
-      const card = track.querySelector<HTMLElement>(".pl-card");
-      if (card && dragged.current) {
-        const step = card.offsetWidth + 20;
-        const i = Math.round(track.scrollLeft / step);
-        track.scrollTo({ left: i * step, behavior: "smooth" });
+    const up = (e: PointerEvent) => {
+      if (!card || e.pointerId !== id) return;
+      const el = card;
+      const moved = Math.abs(dx);
+      const v = moved / Math.max(1, performance.now() - t0);
+      delete deck.dataset.dragging;
+      card = null;
+      if (!dragging) return; // a tap: the <a> handles it
+      if (moved > 90 || v > 0.5) {
+        const dir = dx < 0 ? -1 : 1;
+        if (reduced) {
+          el.style.transition = "none";
+          el.style.transform = "";
+          cycle(1);
+          return;
+        }
+        setT(el, `translate3d(${dir * 120}%,0,0) rotate(${dir * 12}deg)`, "transform .35s var(--ease-out), opacity .35s var(--ease-out)");
+        el.style.opacity = "0";
+        window.setTimeout(() => {
+          el.style.transition = "none";
+          el.style.transform = "";
+          el.style.opacity = "";
+          cycle(1);
+        }, 330);
+      } else {
+        setT(el, "", "transform .3s var(--ease-out)");
+        window.setTimeout(() => {
+          el.style.transition = "";
+        }, 320);
       }
     };
-    track.addEventListener("pointerdown", onDown);
-    track.addEventListener("pointermove", onMove);
-    track.addEventListener("pointerup", onUp);
-    track.addEventListener("pointercancel", onUp);
+
+    deck.addEventListener("pointerdown", down);
+    deck.addEventListener("pointermove", move);
+    deck.addEventListener("pointerup", up);
+    deck.addEventListener("pointercancel", up);
     return () => {
-      track.removeEventListener("pointerdown", onDown);
-      track.removeEventListener("pointermove", onMove);
-      track.removeEventListener("pointerup", onUp);
-      track.removeEventListener("pointercancel", onUp);
+      deck.removeEventListener("pointerdown", down);
+      deck.removeEventListener("pointermove", move);
+      deck.removeEventListener("pointerup", up);
+      deck.removeEventListener("pointercancel", up);
     };
-  }, []);
+  }, [cycle, reduced]);
 
-  const go = (dir: number) => {
-    const track = trackRef.current;
-    const card = track?.querySelector<HTMLElement>(".pl-card");
-    if (!track || !card) return;
-    track.scrollBy({ left: dir * (card.offsetWidth + 20), behavior: "smooth" });
-  };
-
-  // Desktop hover tilt on the cover, rAF + CSS vars only
-  const hoverRaf = useRef(0);
-  const onCoverMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (e.pointerType !== "mouse") return;
-    const el = e.currentTarget;
-    const { clientX, clientY } = e;
-    if (hoverRaf.current) return;
-    hoverRaf.current = requestAnimationFrame(() => {
-      hoverRaf.current = 0;
-      const r = el.getBoundingClientRect();
-      const ux = (clientX - r.left) / r.width - 0.5;
-      const uy = (clientY - r.top) / r.height - 0.5;
-      el.style.setProperty("--hx", `${(ux * 16).toFixed(2)}deg`);
-      el.style.setProperty("--hy", `${(-uy * 16).toFixed(2)}deg`);
-    });
-  };
-  const onCoverLeave = (e: React.PointerEvent<HTMLElement>) => {
-    e.currentTarget.style.setProperty("--hx", "0deg");
-    e.currentTarget.style.setProperty("--hy", "0deg");
-  };
+  const top = lists[order[0]];
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label="My YouTube Music playlists" className="pl-wrap">
-      <ul
-        ref={trackRef}
-        className="pl-track"
+    <div
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="My YouTube Music playlists — swipe or use the arrow keys"
+      className="pl-deck-wrap"
+    >
+      <div
+        ref={deckRef}
         tabIndex={0}
-        aria-label="Playlists, swipe or use the arrow keys"
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") {
             e.preventDefault();
-            go(1);
+            cycle(1);
           } else if (e.key === "ArrowLeft") {
             e.preventDefault();
-            go(-1);
+            cycle(-1);
           }
         }}
+        className="pl-deck"
       >
-        {lists.map((p, i) => (
-          <li key={p.id} className="pl-card" aria-roledescription="slide" aria-label={`${i + 1} of ${lists.length}: ${p.label}`}>
-            <a
-              href={`https://music.youtube.com/playlist?list=${p.id}`}
-              target="_blank"
-              rel="noreferrer"
-              draggable={false}
-              onClick={(e) => {
-                if (dragged.current) {
-                  e.preventDefault();
-                  dragged.current = false;
-                }
-              }}
-              onPointerMove={onCoverMove}
-              onPointerLeave={onCoverLeave}
-              className="pl-tilt group block rounded-[var(--radius-lg)]"
+        {order.map((li, depth) => {
+          const p = lists[li];
+          const isTop = depth === 0;
+          return (
+            <div
+              key={p.id}
+              data-top={isTop ? "true" : undefined}
+              className="pl-stack-card"
+              style={{ ["--d" as string]: depth, zIndex: order.length - depth }}
+              aria-hidden={!isTop}
             >
-              <span className="pl-cover block overflow-hidden rounded-[var(--radius-lg)] bg-paper-deep shadow-[0_18px_40px_-22px_#14130f80]">
+              <a
+                href={`https://music.youtube.com/playlist?list=${p.id}`}
+                target="_blank"
+                rel="noreferrer"
+                draggable={false}
+                tabIndex={isTop ? 0 : -1}
+                className="block h-full w-full rounded-[var(--radius-lg)]"
+                aria-label={`${p.label}: ${p.title}${typeof p.itemCount === "number" ? `, ${p.itemCount} tracks` : ""} — open in YouTube Music`}
+              >
                 <img
                   src={p.thumbnail}
-                  alt={`${p.title} playlist cover`}
+                  alt=""
                   width={480}
                   height={480}
-                  loading="lazy"
+                  loading={depth > 1 ? "lazy" : "eager"}
+                  decoding="async"
                   draggable={false}
-                  className="block aspect-square w-full object-cover"
+                  className="pl-cover block h-full w-full rounded-[var(--radius-lg)] bg-paper-deep object-cover"
                 />
-              </span>
-              <span className="kicker mt-4 block text-ink-soft">{p.label}</span>
-              <span className="mt-1 block truncate text-md text-ink transition-colors duration-[var(--dur-2)] group-hover:text-vermilion-ink">
-                {p.title}
-              </span>
-              {typeof p.itemCount === "number" && (
-                <span className="mt-0.5 block font-mono text-xs text-graphite tabular">{p.itemCount.toLocaleString("en-US")} tracks</span>
-              )}
-            </a>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-2 flex items-center justify-center gap-4">
-        <button
-          type="button"
-          onClick={() => go(-1)}
-          aria-label="Previous playlist"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:border-ink"
-        >
-          <ChevronLeft aria-hidden className="h-5 w-5" strokeWidth={1.75} />
-        </button>
-        <span aria-hidden className="flex items-center gap-1.5">
-          {lists.map((p, i) => (
-            <span
-              key={p.id}
-              className={cn(
-                "h-1.5 rounded-full transition-[width,background-color] duration-[var(--dur-3)] ease-[var(--ease-out)]",
-                i === active ? "w-5 bg-ink" : "w-1.5 bg-rule-strong"
-              )}
-            />
-          ))}
-        </span>
-        <button
-          type="button"
-          onClick={() => go(1)}
-          aria-label="Next playlist"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:border-ink"
-        >
-          <ChevronRight aria-hidden className="h-5 w-5" strokeWidth={1.75} />
-        </button>
+              </a>
+            </div>
+          );
+        })}
       </div>
-      <p aria-live="polite" className="sr-only">
-        {lists[active] ? `${lists[active].label}: ${lists[active].title}` : ""}
-      </p>
+
+      <div className="pl-meta" aria-live="polite">
+        <p key={top?.id} className="m-swap">
+          <span className="kicker block text-ink-soft">{top?.label}</span>
+          <span className="mt-1 block truncate text-md text-ink">{top?.title}</span>
+          {typeof top?.itemCount === "number" && (
+            <span className="mt-0.5 block font-mono text-xs text-graphite tabular">
+              {top.itemCount.toLocaleString("en-US")} tracks{live ? "" : ""}
+            </span>
+          )}
+        </p>
+        <p className="mt-2 font-mono text-xs text-graphite">Swipe the covers</p>
+      </div>
     </div>
   );
 }

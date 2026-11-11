@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 import { GAMES, QUIZ, type Game } from "../lib/data";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
@@ -446,26 +447,40 @@ function QuizGame() {
 /* ================= Modal shell + grid ================= */
 
 function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
+    // Lock the page without shifting it: compensate for the scrollbar we hide.
+    const root = document.documentElement;
+    const gap = window.innerWidth - root.clientWidth;
+    const prevOverflow = root.style.overflow;
+    const prevPad = root.style.paddingRight;
+    root.style.overflow = "hidden";
+    if (gap > 0) root.style.paddingRight = `${gap}px`;
+    cardRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      root.style.overflow = prevOverflow;
+      root.style.paddingRight = prevPad;
     };
   }, [onClose]);
 
-  return (
+  // Portalled to <body>: inside the tab panel a transformed ancestor would make
+  // position: fixed relative to it, so the dialog landed off-centre.
+  return createPortal(
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-[#14130f8c] p-4 sm:p-6"
+      className="game-scrim fixed inset-0 z-[90] grid place-items-center p-4 sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`${game.name} game`}
     >
       <div
-        className="m-settle max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)]"
+        ref={cardRef}
+        tabIndex={-1}
+        className="m-settle max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-rule px-5 py-2">
@@ -487,7 +502,8 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
           <MonoTag className="text-graphite">ESC to eject · scores persist locally</MonoTag>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -6,7 +6,7 @@ import {
 import { ArrowRight, Check, ChevronUp, RefreshCw, X } from "lucide-react";
 import { MonoTag, SectionHead, StatusDot } from "./ui";
 import { Reveal } from "./Reveal";
-import { Halftone } from "./AnimeFx";
+import { BurstLines, GiantType, Halftone } from "./AnimeFx";
 
 /* ══════════════════════════════════════════════════════════════════════
    ASK / AMA — ported 1:1 from the previous build:
@@ -519,7 +519,9 @@ export function Ask() {
   };
 
   return (
-    <section id="ask" aria-labelledby="ask-title" className="border-t border-rule">
+    <section id="ask" aria-labelledby="ask-title" className="relative overflow-clip border-t border-rule">
+      <GiantType text="ROOT" reverse className="bottom-0" />
+      <BurstLines className="bottom-10" />
       <div className="page relative py-24 lg:py-32">
         <Halftone className="top-16 right-0 left-0 h-44" />
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-20">

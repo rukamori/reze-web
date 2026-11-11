@@ -206,13 +206,19 @@ export const AMA_KEYS = {
 
 /* ---------- Music: full songs via YouTube's official embed ---------- */
 
-export type Track = { id: string; title: string; artist: string; scId: number; permalink: string; artwork: string };
+export type Track = { id: string; title: string; artist: string; file: string; artwork: string };
 
-/** Full tracks, audio only, through SoundCloud's official widget. Swap a track here if an upload disappears. */
+/** The mp3s live in /music on main. jsDelivr streams them with CORS + range support. */
+const CDN = "https://cdn.jsdelivr.net/gh/4nx3b/Vercel-Website@main/music/";
+const RAW = "https://raw.githubusercontent.com/4nx3b/Vercel-Website/main/music/";
+export const audioSrc = (file: string) => CDN + encodeURIComponent(file);
+export const audioSrcFallback = (file: string) => RAW + encodeURIComponent(file);
+
+/** Full tracks, streamed from this repo. Swap a file name here to change a track. */
 export const TRACKS: Track[] = [
-  { id: "abgrund", title: "Abgrund", artist: "Elous\u2227.FZ", scId: 1507694857, permalink: "https://soundcloud.com/293857298/elousfz-abgrund", artwork: "https://i1.sndcdn.com/artworks-44KBwQeyzBfIJFun-LorbIw-t500x500.jpg" },
-  { id: "journey", title: "Journey To The Rainbows", artist: "Ardolf", scId: 960372361, permalink: "https://soundcloud.com/ardolf_music/ardolf-journey-to-the-rainbows", artwork: "https://i1.sndcdn.com/artworks-cHEPOvbYHniCyvOj-xJaHUw-t500x500.jpg" },
-  { id: "orthodox", title: "Orthodox", artist: "tokiwa", scId: 347903683, permalink: "https://soundcloud.com/tokiwa_anka/tokiwa-orthodox", artwork: "https://i1.sndcdn.com/artworks-000651636742-791u96-t500x500.jpg" },
+  { id: "abgrund", title: "Abgrund", artist: "Elous\u2227.FZ", file: "elous\u2227.-fz - abgrund.mp3", artwork: "https://i1.sndcdn.com/artworks-44KBwQeyzBfIJFun-LorbIw-t500x500.jpg" },
+  { id: "journey", title: "Journey To The Rainbows", artist: "Ardolf", file: "Journey To The Rainbows.mp3", artwork: "https://i1.sndcdn.com/artworks-cHEPOvbYHniCyvOj-xJaHUw-t500x500.jpg" },
+  { id: "orthodox", title: "Orthodox", artist: "tokiwa", file: "Orthodox.mp3", artwork: "https://i1.sndcdn.com/artworks-000651636742-791u96-t500x500.jpg" },
 ];
 
 export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
@@ -221,10 +227,10 @@ export type Playlist = { id: string; label: string; title: string; thumbnail: st
 
 /** Fallbacks (from YouTube oEmbed); /api/yt-playlists refreshes title, cover and count live. */
 export const PLAYLISTS: Playlist[] = [
-  { id: "PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O", label: "Japanese", title: "peak jpop", thumbnail: "https://i.ytimg.com/vi/tuZty35Fk7M/hqdefault.jpg", itemCount: 525 },
-  { id: "PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC", label: "English", title: "high nights \u2604\ufe0f\ud83d\udc7e", thumbnail: "https://i.ytimg.com/vi/8BiLurrzFRw/hqdefault.jpg", itemCount: null },
-  { id: "PL-fWIzgBd5AyeDYfArAo6ZEKl3xxeG7mc", label: "Hindi", title: "Lesss Vibee \ud83d\udcab", thumbnail: "https://i.ytimg.com/vi/HcOBSj_uSvM/hqdefault.jpg", itemCount: null },
-  { id: "PL-fWIzgBd5AxneK5vQfmaQskYmuwbXZ_k", label: "Phonk", title: "phonk time \ud83d\udca5", thumbnail: "https://i.ytimg.com/vi/NT4eF9YsYnM/hqdefault.jpg", itemCount: null },
-  { id: "PL-fWIzgBd5Aw0-x8aDOYMOZcoD6jmzPWs", label: "Mix", title: "mix", thumbnail: "https://i.ytimg.com/vi/QygzZXrHcdo/hqdefault.jpg", itemCount: null },
+  { id: "PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O", label: "Japanese", title: "peak jpop", thumbnail: "https://i.ytimg.com/pl_c/PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O/studio_square_thumbnail.jpg?sqp=CKTU0NcG-oaymwEICNAFENAFSFqi85f_AwYIgu_k0gY=&rs=AOn4CLCzdzCZ3H0i8ubn8Xb2MyTsflUwbQ", itemCount: 525 },
+  { id: "PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC", label: "English", title: "high nights \u2604\ufe0f\ud83d\udc7e", thumbnail: "https://i.ytimg.com/pl_c/PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC/studio_square_thumbnail.jpg?sqp=CMD80NcG-oaymwEICNAFENAFSFqi85f_AwYIlO_k0gY=&rs=AOn4CLAp2EHb5erNuJUu1--gAQK9oUnXew", itemCount: 688 },
+  { id: "PL-fWIzgBd5AyeDYfArAo6ZEKl3xxeG7mc", label: "Hindi", title: "Lesss Vibee \ud83d\udcab", thumbnail: "https://i.ytimg.com/vi/HcOBSj_uSvM/maxresdefault.jpg", itemCount: 93 },
+  { id: "PL-fWIzgBd5AxneK5vQfmaQskYmuwbXZ_k", label: "Phonk", title: "phonk time \ud83d\udca5", thumbnail: "https://i.ytimg.com/vi/NT4eF9YsYnM/maxresdefault.jpg", itemCount: 73 },
+  { id: "PL-fWIzgBd5Aw0-x8aDOYMOZcoD6jmzPWs", label: "Mix", title: "mix", thumbnail: "https://i.ytimg.com/vi/QygzZXrHcdo/maxresdefault.jpg", itemCount: 27 },
 ];
 

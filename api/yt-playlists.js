@@ -58,10 +58,22 @@ async function viaDataApi(key) {
     return {
       id,
       title: (it.snippet && it.snippet.title) || null,
-      thumbnail: best.url || null,
+      thumbnail: noBars(best.url) || null,
       itemCount: it.contentDetails ? Number(it.contentDetails.itemCount) : null,
     };
   });
+}
+
+/**
+ * Video thumbnails come back as 4:3 "hqdefault" frames with black letterbox
+ * bars baked in. maxresdefault/hq720 are true 16:9 with no bars, so a square
+ * object-cover crop stays clean. Custom pl_c playlist covers are left alone.
+ */
+function noBars(url) {
+  if (!url) return url;
+  const m = url.match(/i\.ytimg\.com\/vi\/([\w-]{6,})\//);
+  if (!m) return url;
+  return `https://i.ytimg.com/vi/${m[1]}/maxresdefault.jpg`;
 }
 
 async function viaPublic(id) {
@@ -81,15 +93,31 @@ async function viaPublic(id) {
   try {
     const html = await getText(pageUrl, {
       "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent": "Mozilla/5.0 (compatible; v3rsi0n-site/1.0)",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     });
+
+    // The custom square playlist cover set in YouTube Studio. Signed URL, so
+    // take the widest one the page offers; square means no letterbox bars.
+    const covers = [...html.matchAll(/"url":"(https:\/\/i\.ytimg\.com\/pl_c\/[^"]+)","width":(\d+)/g)].map((m) => ({
+      url: m[1].replace(/\\u0026/g, "&").replace(/\\\//g, "/"),
+      width: Number(m[2]),
+    }));
+    if (covers.length) {
+      out.thumbnail = covers.sort((a, b) => b.width - a.width)[0].url;
+    } else {
+      const og = html.match(/<meta property="og:image" content="([^"]+)"/);
+      if (og) out.thumbnail = og[1].replace(/&amp;/g, "&");
+    }
+
     const m =
       html.match(/"text":"([\d,]+)"\},\{"text":" videos"/) || html.match(/([\d,]+) videos/);
     if (m) out.itemCount = Number(m[1].replace(/,/g, ""));
   } catch (_) {
-    /* keep null */
+    /* keep what we have */
   }
 
+  out.thumbnail = noBars(out.thumbnail);
   return out;
 }
 
@@ -111,7 +139,7 @@ module.exports = async function handler(req, res) {
   }
 
   res.setHeader("Content-Type", "application/json");
-  res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=600");
   res.statusCode = 200;
   res.end(JSON.stringify({ playlists, fetchedAt: new Date().toISOString() }));
 };
